@@ -8,7 +8,7 @@ Some scripts are based on or slight modification of the scripts provided by SHAR
 Slight modifications of SHARC script:
 
 - conversion to python3
-- fixing of several bug to make it run
+- fixing of several bugs to make it run
 - modification of bar plotting routine
 - modification of normal mode analysis (weighted vs. unweighted, coherent vs. total)
 - pure excited state dynamics and normal mode analysis by detecting GShop (forced)
