@@ -5,6 +5,8 @@ This is a collection of analysis scripts for SHARC, Surface Hopping including Ar
 Some scripts are based on or slight modification of the scripts provided by SHARC
 
 ## trajana_nma.py
+Normal mode analysis of SHARC trajectories.
+
 Slight modifications of SHARC script:
 
 - conversion to python3
