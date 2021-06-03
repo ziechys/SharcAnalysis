@@ -20,5 +20,5 @@ Setting up trajectories for SHARC run
 
 Slight modifications of original SHARC script:
 
-- fix big for forced GShop
+- fix bug for forced GShop
 - include option to specify laserwidth
