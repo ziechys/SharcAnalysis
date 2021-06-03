@@ -26,3 +26,7 @@ Slight modifications of original SHARC script:
 ## corr_nan.py
 Script to correct 'nan' bug occuring for forced GS hop setup.
 Script reads MD output substitutes 'nan' entries in coefficient data with expected coefficient for a GS hop. 
+
+## end_struc.py
+
+Get all final structures of a MD run in one file (e.g. to view with Molden)
