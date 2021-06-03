@@ -23,6 +23,23 @@ The following analysis is conducted: MCH energies, Diag energies, MCH amplitudes
 
 Use ```python3 single_traj_analysis.py <path-to-trajectories> <number-of-states> <Geo.inp>``` 
 
+## post_analysis.py
+Script to analyse SHARC MD simulations with forced GShop.
+The script checks if the trajectories behave ordinary befor the GShop and flags them if so or not (DONT_ANALZE flag).
+
+Information output from the script (additional to SHARC's own diagnostics.py): 
+- Same gradient in two subsequent time steps during simultion (indicated problem in quantum chemistry calculation)
+- When does the GS hop occur
+- Is the state changing after the GS hop (it should not)?
+- What is T_use from diagnostics.py
+
+Trajectories are groups in:
+- no GS hop
+- usable trajectory until GS hop, i.e. no criteria set in diagnostics.py or double gradients before GS hop
+- not usable trajectories due to T_use > time of GS hop or double gradients before GS hop
+
+Use ```python3 post_analysis.py <path-to-trajectories> <diagnostics.py output>``` 
+
 ## setup_traj.py
 Setting up trajectories for SHARC run
 
