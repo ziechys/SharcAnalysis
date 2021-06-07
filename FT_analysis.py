@@ -330,17 +330,20 @@ def get_general():
   print('')
   intervallist=[]
   print(centerstring('Time steps to be analysed',60,'-'))
-  print('\nPlease enter the time step intervals for which the statistical analysis should be carried out. ')
+  print('\nPlease enter the time step intervals for which the FT analysis should be carried out. ')
   print('')
-  while True:
-    interval=question('Time step interval: ',int,[0,maxlen])
-    #endtime=question('End time of interval: ',int,[maxlen])[0]
-    print('')
-    #interval=[starttime,endtime]
-    intervallist.append(interval)
-    moreinterval=question('Do you want to add another time interval for analysis?',bool,False)
-    if not moreinterval:
-      break
+#ToDo: Implement several intervals
+#  while True:
+#    interval=question('Time step interval: ',int,[0,maxlen])
+#    #endtime=question('End time of interval: ',int,[maxlen])[0]
+#    print('')
+#    #interval=[starttime,endtime]
+#    intervallist.append(interval)
+#    moreinterval=question('Do you want to add another time interval for analysis?',bool,False)
+#    if not moreinterval:
+#      break
+  interval=question('Time step interval: ',int,[0,maxlen])
+  intervallist.append(interval)
   INFOS['interval']=intervallist
   print('')
   GShop=question('Do you want to only regard data until GShop. Feature only available for forced GS hop dynamics.',bool,False)
@@ -421,10 +424,11 @@ def ft_analysis(INFOS):
     plot=INFOS['plot']
     mawe=INFOS['massweight']    
 
-    try:
-        os.makedirs(INFOS['savedir'])
-    except OSError:
-        print('Output directory could not be created. It either already exists or you do not have writing access.')
+    if INFOS['onefolder']:
+      try:
+          os.makedirs(INFOS['savedir'])
+      except OSError:
+          print('Output directory could not be created. It either already exists or you do not have writing access.')
     
     # define reference structure from molden file
     ref_struc = struc_linalg.structure('ref_struc') 
@@ -493,6 +497,10 @@ def ft_analysis(INFOS):
         time = time[:trajectory.hop]
         for nr in range(numpy.shape(geomdata)[0]):
           geomdata[nr] = geomdata[nr][:trajectory.hop]
+
+      time = time[INFOS['interval'][0][0]:INFOS['interval'][0][1]]
+      for nr in range(numpy.shape(geomdata)[0]):
+          geomdata[nr] = geomdata[nr][INFOS['interval'][0][0]:INFOS['interval'][0][1]]
 
       #Damping function
       damping = numpy.array([numpy.cos( ( i /(time[-1]) ) *  (numpy.pi/2) )**2 for i in time  ])
