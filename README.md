@@ -4,8 +4,6 @@ This is a collection of analysis scripts for SHARC, Surface Hopping including Ar
 
 Some scripts are based on or slight modification of the scripts provided by SHARC (original scripts see: https://github.com/sharc-md/sharc)
 
-These are my own scripts, no affiliation with the original developer of SHARC
-
 ## FT_analysis.py
 Fourier transformation analysis of the relaxation dynamics in SHARC based on structural changes. 
 Coded in style with SHARC's original scripts using traj_manip class and geo.py 
