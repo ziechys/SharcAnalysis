@@ -19,6 +19,7 @@ descr: Analyse structural dynamics of coherent classical motion during relaxatio
 #warnings.filterwarnings("error")
 #warnings.simplefilter("ignore", category=ResourceWarning) 
 import os, sys, shutil, re, datetime, readline
+from shutil import copyfile
 os.chdir(os.path.dirname(sys.argv[0]))
 sys.path.append('sharclib')
 try:
@@ -34,9 +35,19 @@ except ImportError:
 try:
     import plotting
     plot_possible = True
+    import matplotlib
+    import matplotlib.pyplot as plt
 except:
     print('Plotting not possible (probably because pylab/matplotlib is not installed or because there is no X connection)')
     plot_possible = False
+
+from scipy.interpolate import CubicSpline
+from scipy import interpolate
+from scipy.interpolate import interp1d
+from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.fft import fft, ifft, fftfreq, rfft, fftshift
+from scipy import optimize
+import math
 
 version='1.0'
 versiondate=datetime.date(2021,6,4)
@@ -104,7 +115,7 @@ def open_keystrokes():
 # ======================================================================= #
 def close_keystrokes():
   KEYSTROKES.close()
-  shutil.move('KEYSTROKES.tmp','KEYSTROKES.trajana_nma')
+  shutil.move('KEYSTROKES.tmp','KEYSTROKES.ft')
 
 # ======================================================================= #
 def question(question,typefunc,default=None,autocomplete=True,ranges=False):
@@ -306,7 +317,13 @@ def get_general():
     print('')
     autoplot=question('Do you want to automatically create plots of your data?',bool,False)
     INFOS['plot']=autoplot
-    print('')
+    if autoplot:
+      INFOS['labels']=question('Specify labels for legend based on internal coordinates used in FT analysis (comma separated)',str,autocomplete=False).split(',')
+      INFOS['limit']=question('Specify x axis range (in cm^-1)',float,[0,4000])
+      INFOS['live']=question('Do you want to live analyse each trajectory?',bool,False)
+      INFOS['onefolder']=question('Do you want to save all graphs in one file?',bool,True)
+      if INFOS['onefolder']:
+        INFOS['savedir']=question('Name for directory?',str,'FT')
   else:
     INFOS['plot']=False
 
@@ -334,36 +351,78 @@ def get_general():
   geoin=question('Name for geometry file?',str,'Geo.inp')
   INFOS['geo'] = geoin
   print('')
-  print(centerstring('Results directory',60,'-'))
-  print('Please give the name of the subdirectory to be used for the results (use to save similar analysis in separate subdirectories).')
-  destin=question('Name for subdirectory?',str,'nma')
-  INFOS['descr']=destin
+  print(centerstring('Post-processing',60,'-'))
+  post=question('Do you want the FT analysis date to be post-processed for improved resolution?',bool,True)
+  INFOS['post'] = post
   print('')
 
   return INFOS
+
+def do_FT(time, data,plottime=False,damping=1.0,padding=0.0,mean=False,corrdamp=False):
+  """
+  FT anaylsis of data. 
+  Possible FT options are: splines, damping, padding, mean value substraction, post-damping correction.
+  """
+  #Some useful conversion
+  cm2au = 4.5563352529120*10**(-6)
+  au2fs = 0.024188843265857
+
+  #Process data: Mean offset and damping
+  if mean:
+      offset = numpy.mean(data[:   round(math.floor(len(data)/numpy.pi/2) * numpy.pi * 2 )   ])
+      #offset = numpy.mean(data)
+      print('Data offset found of ', offset)
+      data = data - offset
+  data = data * damping
+
+  if plottime:
+      #Plot input data in time
+      plt.plot(time*au2fs, data,label=legend)
+      plt.xlabel('t / fs')
+      plt.ylabel('E / eV')
+      plt.show()
+  
+  #FFT to energy/freq
+  if padding > 0.0:
+      gridpoints = padding
+  else:
+      gridpoints = len(data)
+  dt = abs(time[1] - time[0])
+  dE = (2*numpy.pi)/(dt)
+  FFT_energy = rfft(data,n=gridpoints)
+  energy = numpy.linspace(0, dE/2, num=gridpoints//2+1, endpoint=True)
+  #Plot FFT results
+  if corrdamp:
+      FFT_damp = rfft(damping,n=gridpoints)
+      energy_out = energy/cm2au
+      data_out   = abs(FFT_energy/FFT_damp)/numpy.max( abs(FFT_energy/FFT_damp))
+  else:
+      energy_out = energy[1:]/cm2au #remove first point cause heavily influenced by damping
+      data_out   = abs(FFT_energy[1:])/numpy.max( abs(FFT_energy[1:]))
+
+  return numpy.array(energy_out),numpy.array(data_out)
 
 # ======================================================================= # 
 def ft_analysis(INFOS):
     """
     FT analysis analysis. Typically this script is carried out.
     """
+
+    au2fs = 0.024188843265857
+
     print('Preparing FT analysis ...')
 
     num_steps=INFOS['numsteps']
-    descr=INFOS['descr']
-    out_dir = os.path.join('NMA',descr)
     ref_struc_file=INFOS['refstruc']
     ref_struc_type=INFOS['reftype']
     ana_ints=INFOS['interval']
     vibration_file=INFOS['refvib']
     dt=INFOS['timestep']
-    abs_list=INFOS['symmmodes']
-    neg_list=INFOS['negmodes']
     plot=INFOS['plot']
     mawe=INFOS['massweight']    
 
     try:
-        os.makedirs(out_dir)
+        os.makedirs(INFOS['savedir'])
     except OSError:
         print('Output directory could not be created. It either already exists or you do not have writing access.')
     
@@ -418,54 +477,95 @@ def ft_analysis(INFOS):
       #
       # Analysis A: Create geometry file based on SHARC's geo.py and do individual FT analysis
 
-      os.system("python3 geo.py -g " + folder_name + "/output.xyz -t " + INFOS['timestep'] + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
-      sys.exit(0)
+      print('Performing internal coordinate analysis...')
+      #ToDo: Change to python3 for Linux machine
+      os.system("python geo.py -g " + folder_name + "/output.xyz -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
+      
+      #call traj_manip class for single traj: Creates a trajectory object out of Nt structure objects
+      trajectory = traj_manip.trajectory(folder_name, ref_struc, dt=dt,GSstop=INFOS['GShop'])
+
+      # Read Geo data from specific internal coordinates
+      time, *geomdata = numpy.loadtxt(folder_name+'/FT_Geo.out',unpack=True)
+      time = time/au2fs
+
+      #Restrict to excited state dynamics if requested
+      if INFOS['GShop']:
+        time = time[:trajectory.hop]
+        for nr in range(numpy.shape(geomdata)[0]):
+          geomdata[nr] = geomdata[nr][:trajectory.hop]
+
+      #Damping function
+      damping = numpy.array([numpy.cos( ( i /(time[-1]) ) *  (numpy.pi/2) )**2 for i in time  ])
+
+      print('FT analysis of selected internal degrees of freedom...')
+
+      #Prepare data arrays
+      padding_nr = 10000
+      xdata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+      ydata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+      if INFOS['post']:
+        xdata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+        ydata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+
+      #Do actual FT
+      for nr in range(numpy.shape(geomdata)[0]):
+        xdata[nr],ydata[nr] = do_FT(time,geomdata[nr])
+        if INFOS['post']:
+          xdata_post[nr],ydata_post[nr] = do_FT(time,geomdata[nr],mean=True,damping=damping,padding=padding_nr,corrdamp=True)
+
+      #Save data
+      header = 'frequency [cm^-1]   '
+      for i in INFOS['labels']:
+        header += '|      '+ i + '      '
+      numpy.savetxt(folder_name + 'FT.out', numpy.transpose([xdata[0],*ydata]),header=header)
+      numpy.savetxt(folder_name + 'FT_processed.out', numpy.transpose([xdata_post[0],*ydata_post]),header=header)
+
+      #Plotting
+      if INFOS['plot']:
+        for nr in range(numpy.shape(geomdata)[0]):
+          plt.plot(xdata[nr],ydata[nr],label=INFOS['labels'][nr])
+        plt.xlabel(r'$\omega / cm^{-1}$')
+        plt.xlim(INFOS['limit'])
+        plt.legend()
+        plt.savefig(folder_name + 'FT.pdf')
+        if INFOS['live']:
+          plt.show()
+        plt.close()
+
+        if INFOS['post']:
+          for nr in range(numpy.shape(geomdata)[0]):
+            plt.plot(xdata_post[nr],ydata_post[nr],label=INFOS['labels'][nr])
+          plt.xlabel(r'$\omega / cm^{-1}$')
+          plt.xlim(INFOS['limit'])
+          plt.legend()
+          plt.savefig(folder_name + 'FT_processed.pdf')
+          if INFOS['live']:
+            plt.show()
+          plt.close()
+
+        if INFOS['onefolder']:
+          copyfile(folder_name + 'FT.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT.pdf')
+          if INFOS['post']:
+            copyfile(folder_name + 'FT_processed.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT_processed.pdf')
+      
+      #sys.exit(0)
 
       ################################################
       #
       # Analysis B: Create coherent structure by adding up all structures at all time steps (see essential dynamics)
-
-      #call traj_manip class for single traj: Creates a trajectory object out of Nt structure objects
-      trajectory = traj_manip.trajectory(folder_name, ref_struc, dt=dt,GSstop=INFOS['GShop'])
+    
 
       
     
     
     print('Data processing finished.')
     
-    #if plot: plot_summary(INFOS)
-    
-def plot_summary(INFOS):
-    # plotting
-
-    descr=INFOS['descr']
-    out_dir = os.path.join('NMA',descr)
-    num_steps=INFOS['numsteps']
-
-    if plot_possible:
-        print('Drawing plots ...')
-        
-        # Plots for time dependent cross averages
-        plotting.mean_std_from_files(mean_file=out_dir+'/mean_against_time.txt',out_dir=out_dir+'/time_plots',xlist=[INFOS['timestep'] * i for i in range(num_steps)],std_file=out_dir+'/std_against_time.txt')
-        
-        # Bar graphs with the standard deviation of time dependent cross averages
-        plotting.bars_from_file(in_file=out_dir+'/total_av.txt', out_dir=out_dir+'/bar_graphs/total_av')
-        plotting.bars_from_file(in_file=out_dir+'/total_std.txt', out_dir=out_dir+'/bar_graphs/total_std')
-        plotting.bars_from_file(in_file=out_dir+'/total_weighted_av.txt', out_dir=out_dir+'/bar_graphs/total_weighted_av')
-        plotting.bars_from_file(in_file=out_dir+'/total_weighted_std.txt', out_dir=out_dir+'/bar_graphs/total_weighted_std')
-        plotting.bars_from_file(in_file=out_dir+'/coh_av.txt', out_dir=out_dir+'/bar_graphs/coh_av')
-        plotting.bars_from_file(in_file=out_dir+'/coh_std.txt', out_dir=out_dir+'/bar_graphs/coh_std')
-        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_av.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_av')
-        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_std.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_std')
-    else:
-        print('Plotting not possible')
-    
 def main():
     displaywelcome()
     open_keystrokes()
 
     INFOS=get_general()
-    #ft_analysis(INFOS)
+    ft_analysis(INFOS)
                     
     close_keystrokes()
                 
