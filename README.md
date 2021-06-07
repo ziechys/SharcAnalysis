@@ -2,7 +2,7 @@
 
 This is a collection of analysis scripts for SHARC, Surface Hopping including Arbitrary Couplings developed by the González group (https://sharc-md.org/).
 
-Some scripts are based on or slight modification of the scripts provided by SHARC
+Some scripts are based on or slight modification of the scripts provided by SHARC (original scripts see: https://github.com/sharc-md/sharc)
 
 ## FT_analysis.py
 Fourier transformation analysis of the relaxation dynamics in SHARC based on structural changes. 
