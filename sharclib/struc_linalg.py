@@ -31,6 +31,13 @@ class structure:
         obconversion.SetInFormat(file_type)
         self.mol = openbabel.OBMol()
         obconversion.ReadFile(self.mol, file_path)
+    
+    def set_Title(self,title):
+        """
+        Set title of OBMol object
+        """
+
+        self.mol.SetTitle(title)
 
     def get_mol(self, mol, file_path, file_type='xyz'):
         """
