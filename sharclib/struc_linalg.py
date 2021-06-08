@@ -31,13 +31,6 @@ class structure:
         obconversion.SetInFormat(file_type)
         self.mol = openbabel.OBMol()
         obconversion.ReadFile(self.mol, file_path)
-    
-    def set_Title(self,title):
-        """
-        Set title of OBMol object
-        """
-
-        self.mol.SetTitle(title)
 
     def get_mol(self, mol, file_path, file_type='xyz'):
         """
@@ -284,6 +277,28 @@ class structure:
         obconversion = openbabel.OBConversion()
         obconversion.SetOutFormat(file_type)
         obconversion.WriteFile(self.mol, file_path)
+
+    def set_Title(self,title):
+        """
+        Set OBMol title
+        """
+
+        self.mol.SetTitle(title)
+    
+    def make_trajectory(self,struc_array,output,dt=0.5,file_type='xyz'):
+        """
+        Make a trajectory output file from coor matrix array (T x natom x 3)
+        """
+        self.read_3xN_matrix(struc_array[0])
+        self.set_Title(' t = %7.2f' % 0.0 + ' fs')
+        obconversion = openbabel.OBConversion()
+        obconversion.SetOutFormat(file_type)
+        obconversion.WriteFile(self.mol,output)
+        for i in range(1,numpy.shape(struc_array)[0]):
+            self.read_3xN_matrix(struc_array[i])
+            self.set_Title(' t = %7.2f' % (i*dt) + ' fs')
+            obconversion.Write(self.mol)
+
 
 class mol_calc:
     """
