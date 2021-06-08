@@ -18,7 +18,7 @@ descr: Analyse structural dynamics of coherent classical motion during relaxatio
 #import warnings
 #warnings.filterwarnings("error")
 #warnings.simplefilter("ignore", category=ResourceWarning) 
-import os, sys, shutil, re, datetime, readline
+import os, sys, shutil, re, datetime, readline, copy
 from shutil import copyfile
 os.chdir(os.path.dirname(sys.argv[0]))
 sys.path.append('sharclib')
@@ -49,6 +49,11 @@ from scipy.fft import fft, ifft, fftfreq, rfft, fftshift
 from scipy import optimize
 import math
 
+try:
+    from openbabel import openbabel
+except ImportError:
+    print('openbabel.py package not installed')
+    sys.exit()
 version='1.0'
 versiondate=datetime.date(2021,6,4)
 
@@ -320,8 +325,8 @@ def get_general():
     if autoplot:
       INFOS['labels']=question('Specify labels for legend based on internal coordinates used in FT analysis (comma separated)',str,autocomplete=False).split(',')
       INFOS['limit']=question('Specify x axis range (in cm^-1)',float,[0,4000])
-      INFOS['live']=question('Do you want to live analyse each trajectory?',bool,False)
-      INFOS['onefolder']=question('Do you want to save all graphs in one file?',bool,True)
+      INFOS['live']=question('Do you want to live analyse via matplotlib graphic interface?',bool,False)
+      INFOS['onefolder']=question('Do you want to save all graphs in one directory?',bool,True)
       if INFOS['onefolder']:
         INFOS['savedir']=question('Name for directory?',str,'FT')
   else:
@@ -357,6 +362,10 @@ def get_general():
   print(centerstring('Post-processing',60,'-'))
   post=question('Do you want the FT analysis date to be post-processed for improved resolution?',bool,True)
   INFOS['post'] = post
+  print('')
+  print(centerstring('Detailed Analysis',60,'-'))
+  print('This script will create a coherent wave packet out of all trajectory runs and anlyse the structural dynamics via FT')
+  INFOS['all']=question('Do you want to additonally analyse each individual trajectory?',bool,True)
   print('')
 
   return INFOS
@@ -424,11 +433,12 @@ def ft_analysis(INFOS):
     plot=INFOS['plot']
     mawe=INFOS['massweight']    
 
-    if INFOS['onefolder']:
-      try:
-          os.makedirs(INFOS['savedir'])
-      except OSError:
-          print('Output directory could not be created. It either already exists or you do not have writing access.')
+    if plot:
+      if INFOS['onefolder']:
+        try:
+            os.makedirs(INFOS['savedir'])
+        except OSError:
+            print('Output directory could not be created. It either already exists or you do not have writing access.')
     
     # define reference structure from molden file
     ref_struc = struc_linalg.structure('ref_struc') 
@@ -472,6 +482,10 @@ def ft_analysis(INFOS):
       print('No valid trajectories found, exiting...')
       sys.exit(0)
 
+    # define time-resolved arrays
+    cross_num_array = numpy.zeros(num_steps)
+    cross_sum_array = numpy.zeros([num_steps,num_at*3], float) # a number for every time step and coordinate; sum, has to be divided by num_array?
+
     for i in range(ntraj):  #loop over all trajectories
 
       print('Reading trajectory ' + str(files[i]) + ' ...')
@@ -481,90 +495,143 @@ def ft_analysis(INFOS):
       #
       # Analysis A: Create geometry file based on SHARC's geo.py and do individual FT analysis
 
-      print('Performing internal coordinate analysis...')
-      #ToDo: Change to python3 for Linux machine
-      os.system("python geo.py -g " + folder_name + "/output.xyz -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
-      
       #call traj_manip class for single traj: Creates a trajectory object out of Nt structure objects
       trajectory = traj_manip.trajectory(folder_name, ref_struc, dt=dt,GSstop=INFOS['GShop'])
 
-      # Read Geo data from specific internal coordinates
-      time, *geomdata = numpy.loadtxt(folder_name+'/FT_Geo.out',unpack=True)
-      time = time/au2fs
+      if INFOS['all']:
+        print('Performing internal coordinate analysis of individual trajectory...')
+        #ToDo: Change to python3 for Linux machine
+        os.system("python geo.py -g " + folder_name + "/output.xyz -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
+       
+        # Read Geo data from specific internal coordinates
+        time, *geomdata = numpy.loadtxt(folder_name+'/FT_Geo.out',unpack=True)
+        time = time/au2fs
 
-      #Restrict to excited state dynamics if requested
-      if INFOS['GShop']:
-        time = time[:trajectory.hop]
-        for nr in range(numpy.shape(geomdata)[0]):
-          geomdata[nr] = geomdata[nr][:trajectory.hop]
-
-      time = time[INFOS['interval'][0][0]:INFOS['interval'][0][1]]
-      for nr in range(numpy.shape(geomdata)[0]):
-          geomdata[nr] = geomdata[nr][INFOS['interval'][0][0]:INFOS['interval'][0][1]]
-
-      #Damping function
-      damping = numpy.array([numpy.cos( ( i /(time[-1]) ) *  (numpy.pi/2) )**2 for i in time  ])
-
-      print('FT analysis of selected internal degrees of freedom...')
-
-      #Prepare data arrays
-      padding_nr = 10000
-      xdata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
-      ydata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
-      if INFOS['post']:
-        xdata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
-        ydata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
-
-      #Do actual FT
-      for nr in range(numpy.shape(geomdata)[0]):
-        xdata[nr],ydata[nr] = do_FT(time,geomdata[nr])
-        if INFOS['post']:
-          xdata_post[nr],ydata_post[nr] = do_FT(time,geomdata[nr],mean=True,damping=damping,padding=padding_nr,corrdamp=True)
-
-      #Save data
-      header = 'frequency [cm^-1]   '
-      for i in INFOS['labels']:
-        header += '|      '+ i + '      '
-      numpy.savetxt(folder_name + 'FT.out', numpy.transpose([xdata[0],*ydata]),header=header)
-      numpy.savetxt(folder_name + 'FT_processed.out', numpy.transpose([xdata_post[0],*ydata_post]),header=header)
-
-      #Plotting
-      if INFOS['plot']:
-        for nr in range(numpy.shape(geomdata)[0]):
-          plt.plot(xdata[nr],ydata[nr],label=INFOS['labels'][nr])
-        plt.xlabel(r'$\omega / cm^{-1}$')
-        plt.xlim(INFOS['limit'])
-        plt.legend()
-        plt.savefig(folder_name + 'FT.pdf')
-        if INFOS['live']:
-          plt.show()
-        plt.close()
-
-        if INFOS['post']:
+        #Restrict to excited state dynamics if requested
+        if INFOS['GShop']:
+          time = time[:trajectory.hop]
           for nr in range(numpy.shape(geomdata)[0]):
-            plt.plot(xdata_post[nr],ydata_post[nr],label=INFOS['labels'][nr])
+            geomdata[nr] = geomdata[nr][:trajectory.hop]
+
+        time = time[INFOS['interval'][0][0]:INFOS['interval'][0][1]]
+        for nr in range(numpy.shape(geomdata)[0]):
+            geomdata[nr] = geomdata[nr][INFOS['interval'][0][0]:INFOS['interval'][0][1]]
+
+        #Damping function
+        damping = numpy.array([numpy.cos( ( i /(time[-1]) ) *  (numpy.pi/2) )**2 for i in time  ])
+
+        print('FT analysis of selected internal degrees of freedom...')
+
+        #Prepare data arrays
+        padding_nr = 10000
+        xdata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+        ydata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+        if INFOS['post']:
+          xdata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+          ydata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+
+        #Do actual FT
+        for nr in range(numpy.shape(geomdata)[0]):
+          xdata[nr],ydata[nr] = do_FT(time,geomdata[nr])
+          if INFOS['post']:
+            xdata_post[nr],ydata_post[nr] = do_FT(time,geomdata[nr],mean=True,damping=damping,padding=padding_nr,corrdamp=True)
+
+        #Save data
+        header = 'frequency [cm^-1]   '
+        if plot:
+          for i in INFOS['labels']:
+            header += '|      '+ i + '      '
+        numpy.savetxt(folder_name + 'FT.out', numpy.transpose([xdata[0],*ydata]),header=header)
+        numpy.savetxt(folder_name + 'FT_processed.out', numpy.transpose([xdata_post[0],*ydata_post]),header=header)
+
+        #Plotting
+        if INFOS['plot']:
+          for nr in range(numpy.shape(geomdata)[0]):
+            plt.plot(xdata[nr],ydata[nr],label=INFOS['labels'][nr])
           plt.xlabel(r'$\omega / cm^{-1}$')
           plt.xlim(INFOS['limit'])
           plt.legend()
-          plt.savefig(folder_name + 'FT_processed.pdf')
+          plt.savefig(folder_name + 'FT.pdf')
           if INFOS['live']:
             plt.show()
           plt.close()
 
-        if INFOS['onefolder']:
-          copyfile(folder_name + 'FT.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT.pdf')
           if INFOS['post']:
-            copyfile(folder_name + 'FT_processed.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT_processed.pdf')
+            for nr in range(numpy.shape(geomdata)[0]):
+              plt.plot(xdata_post[nr],ydata_post[nr],label=INFOS['labels'][nr])
+            plt.xlabel(r'$\omega / cm^{-1}$')
+            plt.xlim(INFOS['limit'])
+            plt.legend()
+            plt.savefig(folder_name + 'FT_processed.pdf')
+            if INFOS['live']:
+              plt.show()
+            plt.close()
+
+          if INFOS['onefolder']:
+            copyfile(folder_name + 'FT.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT.pdf')
+            if INFOS['post']:
+              copyfile(folder_name + 'FT_processed.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT_processed.pdf')
       
       #sys.exit(0)
 
       ################################################
       #
       # Analysis B: Create coherent structure by adding up all structures at all time steps (see essential dynamics)
-    
 
+      #Returns a 3N x T matrix with all the coordinates of the timesteps (could be done with ref structure - think about it)    
+      coor_matrix = trajectory.ret_coor_matrix()
       
+      # Obtain time-resovled coherent structure
+      for nr, tstep in enumerate(coor_matrix):
+        cross_num_array[nr] += 1
+        cross_sum_array[nr] += tstep
+
+      #sys.exit(0)
     
+    print('')
+    print('Coherent time-resolved analysis: Processing data ...')
+
+    #Truncate data to limits with actual trajectories in it (no divsion by zero)
+    for ind,num in enumerate(cross_num_array):
+      if num == 0:   
+        cross_num_array = cross_num_array[0:ind]
+        cross_sum_array = cross_sum_array[0:ind]
+        num_steps = ind # num_steps has to be passed as an argument. so it can be changed here.
+        break
+
+    #Create average time-resolved structure
+    cross_mean_array = numpy.zeros_like(cross_sum_array)
+    for i in range(len(cross_num_array)):
+      cross_mean_array[i] = cross_sum_array[i] / cross_num_array[i]
+    #Problem: overweighted by late trajectories
+    #Mabye define a maximum number of trajectories that should still contribute. As percentage of all trajs?
+    plt.plot(numpy.linspace(0,num_steps*0.5,num_steps),cross_num_array)
+    plt.show()
+
+    #Reshape to coor matrix format
+    cross_mean_array = cross_mean_array.reshape(num_steps,num_at,3)
+
+    #Converting structure in coor matrix format to xyz output
+    test = ref_struc
+
+    test.read_3xN_matrix(cross_mean_array[0])
+    test.set_Title(' t = %7.2f' % 0.0 + ' fs')
+    obconversion = openbabel.OBConversion()
+    obconversion.SetOutFormat('xyz')
+    if INFOS['onefolder']:
+      obconversion.WriteFile(test.mol,INFOS['savedir'] + '/coherent_traj.xyz')
+    else:
+      obconversion.WriteFile(test.mol,'coherent_traj.xyz')
+    for i in range(1,num_steps):
+      test.read_3xN_matrix(cross_mean_array[i])
+      test.set_Title(' t = %7.2f' % (i*dt) + ' fs')
+      obconversion.Write(test.mol)
+    
+    
+    # test.make_coord_file('test2.xyz',file_type='xyz')
+
+    #New idea add all freq analysis and normalise them!
+
     
     print('Data processing finished.')
     
