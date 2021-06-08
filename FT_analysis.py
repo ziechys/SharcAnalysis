@@ -612,23 +612,15 @@ def ft_analysis(INFOS):
     cross_mean_array = cross_mean_array.reshape(num_steps,num_at,3)
 
     #Converting structure in coor matrix format to xyz output
-    test = ref_struc
-
-    test.read_3xN_matrix(cross_mean_array[0])
-    test.set_Title(' t = %7.2f' % 0.0 + ' fs')
-    obconversion = openbabel.OBConversion()
-    obconversion.SetOutFormat('xyz')
-    if INFOS['onefolder']:
-      obconversion.WriteFile(test.mol,INFOS['savedir'] + '/coherent_traj.xyz')
+    if plot:
+      if INFOS['onefolder']:
+        ref_struc.make_trajectory(cross_mean_array,INFOS['savedir'] + '/coherent_traj.xyz')
+      else:
+        ref_struc.make_trajectory(cross_mean_array,'coherent_traj.xyz')
     else:
-      obconversion.WriteFile(test.mol,'coherent_traj.xyz')
-    for i in range(1,num_steps):
-      test.read_3xN_matrix(cross_mean_array[i])
-      test.set_Title(' t = %7.2f' % (i*dt) + ' fs')
-      obconversion.Write(test.mol)
+        ref_struc.make_trajectory(cross_mean_array,'coherent_traj.xyz')
     
     
-    # test.make_coord_file('test2.xyz',file_type='xyz')
 
     #New idea add all freq analysis and normalise them!
 
