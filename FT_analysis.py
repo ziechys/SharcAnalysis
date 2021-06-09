@@ -617,8 +617,8 @@ def ft_analysis(INFOS):
       cross_mean_array[i] = cross_sum_array[i] / cross_num_array[i]
     #Problem: overweighted by late trajectories
     #Mabye define a maximum number of trajectories that should still contribute. As percentage of all trajs?
-    plt.plot(numpy.linspace(0,num_steps*0.5,num_steps),cross_num_array)
-    plt.show()
+    #plt.plot(numpy.linspace(0,num_steps*0.5,num_steps),cross_num_array)
+    #plt.show()
 
     #Reshape to coor matrix format
     cross_mean_array = cross_mean_array.reshape(num_steps,num_at,3)
@@ -641,7 +641,7 @@ def ft_analysis(INFOS):
         coh_ft_outdir = INFOS['savedir'] + '/coh_FT.out'
         coh_ft_processed_outdir = INFOS['savedir'] + '/coh_FT_processed.out'
         coh_pdf = INFOS['savedir'] + '/coh_FT.pdf'
-        coh_processed_pdf = INFOS['savedir'] + '/coh_processed_FT.pdf'
+        coh_processed_pdf = INFOS['savedir'] + '/coh_FT_processed.pdf'
         incoh_ft_outdir = INFOS['savedir'] + '/incoh_FT.out'
         incoh_ft_processed_outdir = INFOS['savedir'] + '/incoh_FT_processed.out'
         incoh_pdf = INFOS['savedir'] + '/incoh_FT.pdf'
