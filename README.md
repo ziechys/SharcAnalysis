@@ -13,6 +13,8 @@ Script in progress.
 Features:
 - Define internal coordinates for Fourier Transformation anaylsis
 - FT for each trajectory to obtain relevant frequencies in relaxation dynamics based on structural change
+- Summed-up FT results over all trajectories
+- Creation of coherent wave packet and FT analysis of its structural dynamics
 - Various post-processing methods to improve FT
 - Plotting of FT results
 - pure excited state dynamics and normal mode analysis by detecting (forced) GShop 
