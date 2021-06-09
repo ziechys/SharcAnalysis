@@ -2,7 +2,22 @@
 
 This is a collection of analysis scripts for SHARC, Surface Hopping including Arbitrary Couplings developed by the González group (https://sharc-md.org/).
 
-Some scripts are based on or slight modification of the scripts provided by SHARC
+Some scripts are based on or slight modification of the scripts provided by SHARC (original scripts see: https://github.com/sharc-md/sharc)
+
+## FT_analysis.py
+Fourier transformation analysis of the relaxation dynamics in SHARC based on structural changes. 
+Coded in style with SHARC's original scripts using traj_manip class and geo.py 
+
+Script in progress.
+
+Features:
+- Define internal coordinates for Fourier Transformation anaylsis
+- FT for each trajectory to obtain relevant frequencies in relaxation dynamics based on structural change
+- Various post-processing methods to improve FT
+- Plotting of FT results
+- pure excited state dynamics and normal mode analysis by detecting (forced) GShop 
+
+Use ```python3 FT_analysis.py``` 
 
 ## trajana_nma.py
 Normal mode analysis of SHARC trajectories.
@@ -13,7 +28,7 @@ Slight modifications of original SHARC script:
 - fixing of several bugs to make it run
 - modification of bar plotting routine
 - modification of normal mode analysis (weighted vs. unweighted, coherent vs. total)
-- pure excited state dynamics and normal mode analysis by detecting GShop (forced)
+- pure excited state dynamics and normal mode analysis by detecting (forced) GShop 
 
 Use ```python3 trajana_nma.py``` 
 
