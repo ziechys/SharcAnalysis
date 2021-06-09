@@ -113,7 +113,7 @@ def plot_std(mean_list, std_list, xlist):
     
     pylab.fill(xlist + rev_xlist, plot_list, alpha=.3, facecolor='grey')
 
-def bars_from_file(in_file, out_dir):
+def bars_from_file(in_file, out_dir,nmodes=21):
     """
     Create a bar graph from data in a file.
     """
@@ -137,7 +137,7 @@ def bars_from_file(in_file, out_dir):
     #print mean_lines[1:2]
 
     for i,bars in enumerate(bar_list):
-        pylab.figure(figsize=(2*figwidth, 1*figwidth))
+        pylab.figure(figsize=(2*nmodes/21*figwidth, 1*figwidth))
         #pylab.figure()
         xlist = [eval(num) for num in header[0][1:]]
         pylab.bar(xlist, bars)

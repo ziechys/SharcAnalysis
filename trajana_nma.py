@@ -888,9 +888,9 @@ def nm_analysis(INFOS):
     
     print('Data processing finished.')
     
-    if plot: plot_summary(INFOS)
+    if plot: plot_summary(INFOS,num_vib=num_vib)
     
-def plot_summary(INFOS):
+def plot_summary(INFOS,num_vib=21):
     # plotting
 
     descr=INFOS['descr']
@@ -904,14 +904,14 @@ def plot_summary(INFOS):
         plotting.mean_std_from_files(mean_file=out_dir+'/mean_against_time.txt',out_dir=out_dir+'/time_plots',xlist=[INFOS['timestep'] * i for i in range(num_steps)],std_file=out_dir+'/std_against_time.txt')
         
         # Bar graphs with the standard deviation of time dependent cross averages
-        plotting.bars_from_file(in_file=out_dir+'/total_av.txt', out_dir=out_dir+'/bar_graphs/total_av')
-        plotting.bars_from_file(in_file=out_dir+'/total_std.txt', out_dir=out_dir+'/bar_graphs/total_std')
-        plotting.bars_from_file(in_file=out_dir+'/total_weighted_av.txt', out_dir=out_dir+'/bar_graphs/total_weighted_av')
-        plotting.bars_from_file(in_file=out_dir+'/total_weighted_std.txt', out_dir=out_dir+'/bar_graphs/total_weighted_std')
-        plotting.bars_from_file(in_file=out_dir+'/coh_av.txt', out_dir=out_dir+'/bar_graphs/coh_av')
-        plotting.bars_from_file(in_file=out_dir+'/coh_std.txt', out_dir=out_dir+'/bar_graphs/coh_std')
-        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_av.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_av')
-        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_std.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_std')
+        plotting.bars_from_file(in_file=out_dir+'/total_av.txt', out_dir=out_dir+'/bar_graphs/total_av',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/total_std.txt', out_dir=out_dir+'/bar_graphs/total_std',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/total_weighted_av.txt', out_dir=out_dir+'/bar_graphs/total_weighted_av',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/total_weighted_std.txt', out_dir=out_dir+'/bar_graphs/total_weighted_std',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/coh_av.txt', out_dir=out_dir+'/bar_graphs/coh_av',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/coh_std.txt', out_dir=out_dir+'/bar_graphs/coh_std',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_av.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_av',nmodes=num_vib)
+        plotting.bars_from_file(in_file=out_dir+'/coh_weighted_std.txt', out_dir=out_dir+'/bar_graphs/coh_weighted_std',nmodes=num_vib)
     else:
         print('Plotting not possible')
         
