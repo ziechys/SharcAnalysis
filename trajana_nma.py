@@ -55,7 +55,7 @@ warnings.simplefilter("error", category=RuntimeWarning)
 #warnings.simplefilter("ignore", category=DeprecationWarning) 
 import os, sys, shutil, re, datetime, readline
 #sys.path.insert(0, 'sharclib')
-os.chdir(os.path.dirname(sys.argv[0]))
+#os.chdir(os.path.dirname(sys.argv[0]))
 sys.path.append('sharclib')
 try:
     import numpy
@@ -63,7 +63,7 @@ except ImportError:
     print('numpy package not installed')
     sys.exit()
 try:
-    import file_handler, vib_molden, traj_manip, struc_linalg
+import file_handler, vib_molden, traj_manip, struc_linalg
 except ImportError:
     print('file_handler, vib_molden, traj_manip or struc_linalg not found. They should be part of this package. Check the installation and if $SHARC/../lib is part of the PYTHONPATH environment variable.')
     sys.exit()

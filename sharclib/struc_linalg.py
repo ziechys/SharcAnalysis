@@ -8,7 +8,7 @@ usage: package to perform linear algebra operations on structures.
 
 import os, shutil, locale
 import numpy
-from openbabel import openbabel
+import openbabel
 import superposition
 import file_handler
 from functools import reduce
