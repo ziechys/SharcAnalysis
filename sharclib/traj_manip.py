@@ -12,7 +12,7 @@ except ImportError:
     sys.exit()
     
 try:
-    from openbabel import openbabel
+    import openbabel
 except ImportError:
     print('openbabel.py package not installed')
     sys.exit()
