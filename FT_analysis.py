@@ -486,6 +486,8 @@ def ft_analysis(INFOS):
     cross_num_array = numpy.zeros(num_steps)
     cross_sum_array = numpy.zeros([num_steps,num_at*3], float) # a number for every time step and coordinate; sum, has to be divided by num_array?
 
+    first = True
+
     for i in range(ntraj):  #loop over all trajectories
 
       print('Reading trajectory ' + str(files[i]) + ' ...')
@@ -513,6 +515,7 @@ def ft_analysis(INFOS):
           for nr in range(numpy.shape(geomdata)[0]):
             geomdata[nr] = geomdata[nr][:trajectory.hop]
 
+        #Interval restriction
         time = time[INFOS['interval'][0][0]:INFOS['interval'][0][1]]
         for nr in range(numpy.shape(geomdata)[0]):
             geomdata[nr] = geomdata[nr][INFOS['interval'][0][0]:INFOS['interval'][0][1]]
@@ -543,6 +546,15 @@ def ft_analysis(INFOS):
             header += '|      '+ i + '      '
         numpy.savetxt(folder_name + 'FT.out', numpy.transpose([xdata[0],*ydata]),header=header)
         numpy.savetxt(folder_name + 'FT_processed.out', numpy.transpose([xdata_post[0],*ydata_post]),header=header)
+
+        #Add up all FT data
+        if INFOS['post']:
+          if first:
+            #summed_FTdata      = numpy.zeros_like(ydata) Not possible due to different length for raw data - splining ToDo
+            summed_FTdata_post = numpy.zeros_like(ydata_post)
+            first = False
+          #summed_FTdata      = summed_FTdata + ydata
+          summed_FTdata_post = summed_FTdata_post + ydata_post
 
         #Plotting
         if INFOS['plot']:
@@ -611,20 +623,130 @@ def ft_analysis(INFOS):
     #Reshape to coor matrix format
     cross_mean_array = cross_mean_array.reshape(num_steps,num_at,3)
 
-    #Converting structure in coor matrix format to xyz output
+    #Data files needed
+    coh_outdir ='coherent_traj.xyz'
+    coh_geo_outdir = 'coh_Geo.out'
+    coh_ft_outdir = 'coh_FT.out'
+    coh_ft_processed_outdir = 'coh_FT_processed.out'
+    coh_pdf = 'coh_FT.pdf'
+    coh_processed_pdf = 'coh_FT_processed.pdf'
+    incoh_ft_outdir = 'incoh_FT.out'
+    incoh_ft_processed_outdir = 'incoh_FT_processed.out'
+    incoh_pdf = 'incoh_FT.pdf'
+    incoh_processed_pdf = 'incoh_FT_processed.df'
     if plot:
       if INFOS['onefolder']:
-        ref_struc.make_trajectory(cross_mean_array,INFOS['savedir'] + '/coherent_traj.xyz')
-      else:
-        ref_struc.make_trajectory(cross_mean_array,'coherent_traj.xyz')
-    else:
-        ref_struc.make_trajectory(cross_mean_array,'coherent_traj.xyz')
-    
-    
+        coh_outdir = INFOS['savedir'] + '/coherent_traj.xyz'
+        coh_geo_outdir = INFOS['savedir'] + '/coh_FT_Geo.out'
+        coh_ft_outdir = INFOS['savedir'] + '/coh_FT.out'
+        coh_ft_processed_outdir = INFOS['savedir'] + '/coh_FT_processed.out'
+        coh_pdf = INFOS['savedir'] + '/coh_FT.pdf'
+        coh_processed_pdf = INFOS['savedir'] + '/coh_processed_FT.pdf'
+        incoh_ft_outdir = INFOS['savedir'] + '/incoh_FT.out'
+        incoh_ft_processed_outdir = INFOS['savedir'] + '/incoh_FT_processed.out'
+        incoh_pdf = INFOS['savedir'] + '/incoh_FT.pdf'
+        incoh_processed_pdf = INFOS['savedir'] + '/incoh_FT_processed.df'
 
-    #New idea add all freq analysis and normalise them!
+    #Converting structure in coor matrix format to xyz output
+    ref_struc.make_trajectory(cross_mean_array,coh_outdir)
 
-    
+    #Convert to internal coordinates data
+    os.system("python geo.py -g " + coh_outdir + " -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + coh_geo_outdir) 
+    # Read Geo data from specific internal coordinates
+    time, *geomdata = numpy.loadtxt(coh_geo_outdir,unpack=True)
+    time = time/au2fs
+
+    #Interval restriction
+    if INFOS['interval'][0][1] > num_steps:
+      print('Interval ending was larger then simulation time.')
+      INFOS['interval'][0][1] = num_steps
+      print('Interval set to ', INFOS['interval'][0])
+    time = time[INFOS['interval'][0][0]:INFOS['interval'][0][1]]
+    for nr in range(numpy.shape(geomdata)[0]):
+        geomdata[nr] = geomdata[nr][INFOS['interval'][0][0]:INFOS['interval'][0][1]]
+
+    #Damping function
+    damping = numpy.array([numpy.cos( ( i /(time[-1]) ) *  (numpy.pi/2) )**2 for i in time  ])
+
+    print('FT analysis of selected internal degrees of freedom...')
+
+    #Prepare data arrays
+    padding_nr = 10000
+    xdata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+    ydata = numpy.zeros( (numpy.shape(geomdata)[0],numpy.shape(geomdata)[1]//2) )
+    if INFOS['post']:
+      xdata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+      ydata_post = numpy.zeros( (numpy.shape(geomdata)[0],padding_nr//2+1))
+
+    #Do actual FT
+    for nr in range(numpy.shape(geomdata)[0]):
+      xdata[nr],ydata[nr] = do_FT(time,geomdata[nr])
+      if INFOS['post']:
+        xdata_post[nr],ydata_post[nr] = do_FT(time,geomdata[nr],mean=True,damping=damping,padding=padding_nr,corrdamp=True)
+
+    #Save data
+    header = 'frequency [cm^-1]   '
+    if plot:
+      for i in INFOS['labels']:
+        header += '|      '+ i + '      '
+    numpy.savetxt( coh_ft_outdir, numpy.transpose([xdata[0],*ydata]),header=header)
+    if INFOS['post']:
+      numpy.savetxt( coh_ft_processed_outdir, numpy.transpose([xdata_post[0],*ydata_post]),header=header)
+
+    #Plotting
+    if INFOS['plot']:
+      for nr in range(numpy.shape(geomdata)[0]):
+        plt.plot(xdata[nr],ydata[nr],label=INFOS['labels'][nr])
+      plt.xlabel(r'$\omega / cm^{-1}$')
+      plt.xlim(INFOS['limit'])
+      plt.legend()
+      plt.savefig(coh_pdf)
+      if INFOS['live']:
+        plt.show()
+      plt.close()
+
+      if INFOS['post']:
+        for nr in range(numpy.shape(geomdata)[0]):
+          plt.plot(xdata_post[nr],ydata_post[nr],label=INFOS['labels'][nr])
+        plt.xlabel(r'$\omega / cm^{-1}$')
+        plt.xlim(INFOS['limit'])
+        plt.legend()
+        plt.savefig(coh_processed_pdf)
+        if INFOS['live']:
+          plt.show()
+        plt.close()
+
+
+    ################################################
+    #
+    # Analysis C: Add up all FT results and renormalize
+
+    if INFOS['all'] and INFOS['post']:
+      print('')
+      print('Create incoherent FT analysis over all trajectores')
+
+      #Normalise to 1
+      for i in range(len(summed_FTdata)):
+        summed_FTdata_post[i] = summed_FTdata_post[i] / numpy.max(summed_FTdata_post[i])
+
+      #Save data
+      header = 'frequency [cm^-1]   '
+      if plot:
+        for i in INFOS['labels']:
+          header += '|      '+ i + '      '
+      numpy.savetxt( incoh_ft_processed_outdir, numpy.transpose([xdata_post[0],*summed_FTdata_post]),header=header)
+
+      #Plotting
+      for nr in range(numpy.shape(geomdata)[0]):
+        plt.plot(xdata_post[0],summed_FTdata_post[nr],label=INFOS['labels'][nr])
+      plt.xlabel(r'$\omega / cm^{-1}$')
+      plt.xlim(INFOS['limit'])
+      plt.legend()
+      plt.savefig(incoh_processed_pdf)
+      if INFOS['live']:
+        plt.show()
+      plt.close()
+
     print('Data processing finished.')
     
 def main():
