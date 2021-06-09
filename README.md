@@ -29,6 +29,7 @@ Slight modifications of original SHARC script:
 - modification of bar plotting routine
 - modification of normal mode analysis (weighted vs. unweighted, coherent vs. total)
 - pure excited state dynamics and normal mode analysis by detecting (forced) GShop 
+- anharmonic frequency analysis from a Gaussian fchk via Anharmonic Jupyter notebook (integration into main code will come soon)
 
 Use ```python3 trajana_nma.py``` 
 
