@@ -63,7 +63,7 @@ except ImportError:
     print('numpy package not installed')
     sys.exit()
 try:
-import file_handler, vib_molden, traj_manip, struc_linalg
+    import file_handler, vib_molden, traj_manip, struc_linalg
 except ImportError:
     print('file_handler, vib_molden, traj_manip or struc_linalg not found. They should be part of this package. Check the installation and if $SHARC/../lib is part of the PYTHONPATH environment variable.')
     sys.exit()
