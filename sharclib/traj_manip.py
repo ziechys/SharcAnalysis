@@ -196,12 +196,10 @@ class trajectory:
             # for example according to zero point vibrations
         # abs_list would better only be considered with the averaging
 
-        
         def_vect = def_struc.ret_vector()
         
-        tm = file_handler.table_maker([35]+len(def_vect)*[20])
-
-        if header == None: header = [i+1 for i in range(len(def_vect))]  #header as numbered modes
+        tm = file_handler.table_maker([35]+len(nma_mat[0])*[20])
+        if header == None: header = [i+1 for i in range(len(nma_mat[0]))]  #header as numbered modes 
         tm.write_header_line(header[0])  # column number
         tm.write_header_line(header[1])  # time, frequencies
         tm.write_header_line(header[2])  # blank, T = 1/freq
