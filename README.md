@@ -8,8 +8,6 @@ Some scripts are based on or slight modification of the scripts provided by SHAR
 Fourier transformation analysis of the relaxation dynamics in SHARC based on structural changes. 
 Coded in style with SHARC's original scripts using traj_manip class and geo.py 
 
-Script in progress.
-
 Features:
 - Define internal coordinates for Fourier Transformation anaylsis
 - FT for each trajectory to obtain relevant frequencies in relaxation dynamics based on structural change
