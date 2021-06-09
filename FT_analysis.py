@@ -645,7 +645,7 @@ def ft_analysis(INFOS):
         incoh_ft_outdir = INFOS['savedir'] + '/incoh_FT.out'
         incoh_ft_processed_outdir = INFOS['savedir'] + '/incoh_FT_processed.out'
         incoh_pdf = INFOS['savedir'] + '/incoh_FT.pdf'
-        incoh_processed_pdf = INFOS['savedir'] + '/incoh_FT_processed.df'
+        incoh_processed_pdf = INFOS['savedir'] + '/incoh_FT_processed.pdf'
 
     #Converting structure in coor matrix format to xyz output
     ref_struc.make_trajectory(cross_mean_array,coh_outdir)
@@ -723,10 +723,10 @@ def ft_analysis(INFOS):
 
     if INFOS['all'] and INFOS['post']:
       print('')
-      print('Create incoherent FT analysis over all trajectores')
+      print('Create summed-up FT analysis over all trajectores')
 
       #Normalise to 1
-      for i in range(len(summed_FTdata)):
+      for i in range(len(summed_FTdata_post)):
         summed_FTdata_post[i] = summed_FTdata_post[i] / numpy.max(summed_FTdata_post[i])
 
       #Save data

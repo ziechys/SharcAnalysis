@@ -16,3 +16,5 @@ Singlet_2/
 *.molden
 
 sharclib/__pycache__/
+
+FT2/
