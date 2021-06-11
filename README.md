@@ -37,7 +37,7 @@ Use ```python3 trajana_nma.py```
 Analyse all trajectories of a run individually.
 The following analysis is conducted: MCH energies, Diag energies, MCH amplitudes, Diag amplitudes, hopping probabilities, Geometry change (requested through Geo.inp)
 
-Use ```python3 single_traj_analysis.py <path-to-trajectories> <number-of-states> <Geo.inp>``` 
+Use ```python3 single_traj_analysis.py <path-to-trajectories> <number-of-states> <Geo.inp> <Geo label>``` 
 
 ## post_analysis.py
 Script to analyse SHARC MD simulations with forced GShop.
