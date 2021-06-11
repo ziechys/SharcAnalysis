@@ -3,12 +3,14 @@ import os
 import sys
 import numpy as np
 import matplotlib
+import matplotlib.pyplot as plt
 
 #parser: folder nstates Geo.inp
 
 folder = sys.argv[1]
 nstates = int(sys.argv[2])
 geo = sys.argv[3]
+labels = sys.argv[4].split(',')
 trajs = os.listdir(folder)
 curr = os.getcwd()
 
@@ -17,8 +19,10 @@ print('Current trajectory: ', curr)
 print('Number of states: ', nstates)
 print('Geometry analysis file: ', geo)
 
+print('')
+
 try:
-    os.mkdir(curr + "graphs")
+    os.mkdir(curr + '/' + "graphs")
 except Exception:
     pass
 
@@ -50,7 +54,7 @@ for traj in trajs:
                     dataout.write(line)
     os.system("gnuplot plot2.gp")       
     
-    os.system("cp "+curr+geo+" "+folder+traj)
+    os.system("cp "+curr+'/'+geo+" ./")
     #with open('Geo.inp','w') as dataout:
     #    dataout.write("r 5 1\n")
     #    dataout.write("r 1 2\n")
@@ -59,12 +63,19 @@ for traj in trajs:
     #    dataout.write("r 4 5")
     
     os.system("$SHARC/geo.py -g output.xyz -t 0.5 < Geo.inp > Geo.out")
+
+    #with open('Geo.gp','w') as dataout:
+    #    dataout.write("set terminal pdf\nset output 'Geo.pdf'\nset xlabel 't / fs'\nset ylabel 'r / A'\n")
+    #    dataout.write("p 'Geo.out' w l t 'O5-C1', '' u 1:3 w l t 'C1-C2', '' u 1:4 w l t 'C2-C3', '' u 1:5 w l t 'C3-C4', '' u 1:6 w l t 'C4-O5'")
     
-    with open('Geo.gp','w') as dataout:
-        dataout.write("set terminal pdf\nset output 'Geo.pdf'\nset xlabel 't / fs'\nset ylabel 'r / A'\n")
-        dataout.write("p 'Geo.out' w l t 'O5-C1', '' u 1:3 w l t 'C1-C2', '' u 1:4 w l t 'C2-C3', '' u 1:5 w l t 'C3-C4', '' u 1:6 w l t 'C4-O5'")
-    
-    os.system("gnuplot Geo.gp")
+    #os.system("gnuplot Geo.gp")
+    time, *geomdata = np.loadtxt('Geo.out', unpack=True)
+    for nr,i in enumerate(geomdata):
+        plt.plot(time, i, label = labels[nr])
+    plt.legend()
+    plt.savefig('Geo.pdf')
+    #plt.show()
+    #sys.exit(0)
 
     os.system("cp energies.pdf "+curr+"/graphs/" + traj + "_energies.pdf")
     os.system("cp Diag_energies.pdf "+curr+"/graphs/" + traj + "_Diag_energies.pdf")
