@@ -72,8 +72,10 @@ for traj in trajs:
     time, *geomdata = np.loadtxt('Geo.out', unpack=True)
     for nr,i in enumerate(geomdata):
         plt.plot(time, i, label = labels[nr])
-    plt.legend()
+    plt.xlabel('t / fs')
+    plt.legend(loc='upper left')
     plt.savefig('Geo.pdf')
+    plt.close()
     #plt.show()
     #sys.exit(0)
 
