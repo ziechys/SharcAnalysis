@@ -541,10 +541,10 @@ def get_general():
   print(centerstring('Analysis time window',60,'-'))
   timewindow = question('Do you want to restrict the time window for analysis?',bool,False)
   if timewindow:
-    INFOS['starttime']=question('Define start of analysis in time (in fs)',float,[0.0])
+    INFOS['starttime']=question('Define start of analysis in time (in fs in units of dt)',float,[0.0])
     INFOS['gsend']=question('Do you want to define end of analysis in time via forced GS hop?',bool,True)
     if not INFOS['gsend']:
-      INFOS['endtime']=question('Define end of analysis in time (in fs)',float,[0.0])
+      INFOS['endtime']=question('Define end of analysis in time (in fs in units of dt)',float,[0.0])
   else:
     INFOS['starttime']=[0.0]
     INFOS['gsend']=False
@@ -815,7 +815,7 @@ def check_energies(path,trajectories,INFOS,hops):
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'energy.out')
 
-    #Check how timw window is constructed:
+    #Check how time window is constructed:
     starttime = INFOS['starttime'][0]
     if INFOS['gsend']:
       print('Trying to find GS hop')
@@ -828,6 +828,15 @@ def check_energies(path,trajectories,INFOS,hops):
         pass
     if endtime > trajectories[path]['laststep']*trajectories[path]['dtstep']:
       endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
+    if starttime > trajectories[path]['laststep']*trajectories[path]['dtstep']:
+      print('ERROR: Your chosen starttime is larger then the length of the current trajectory!')
+      sys.exit(0)
+    if starttime%INFOS['dtstep'] != 0.0:
+      print('ERROR: Your starttime was not chosen in units of dt!')
+      print('Time step dt: ',INFOS['dtstep'], ' start time: ', starttime)
+    if endtime%INFOS['dtstep'] != 0.0:
+      print('ERROR: Your starttime was not chosen in units of dt!')
+      print('Time step dt: ',INFOS['dtstep'], ' end time: ', endtime)
 
     for line in f: #go through time steps in energy.out
       if '#' in line:
