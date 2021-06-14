@@ -546,7 +546,7 @@ def get_general():
     if not INFOS['gsend']:
       INFOS['endtime']=question('Define end of analysis in time (in fs)',float,[0.0])
   else:
-    INFOS['starttime']=0.0
+    INFOS['starttime']=[0.0]
     INFOS['gsend']=False
 
   if not LD_dynamics:
@@ -815,15 +815,16 @@ def check_energies(path,trajectories,INFOS,hops):
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'energy.out')
 
-    #Check how endtime is constructed:
+    #Check how timw window is constructed:
+    starttime = INFOS['starttime'][0]
     if INFOS['gsend']:
       print('Trying to find GS hop')
     else:
       try:
-        endtime = INFOS['endtime']
+        endtime = INFOS['endtime'][0]
       except:
-        print('No endtime given. Taking maxstep')
-        endtime = trajectories[path]['maxstep']*trajectories[path]['dtstep']
+        #print('No endtime given. Taking last step')
+        endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
         pass
 
     for line in f: #go through time steps in energy.out
@@ -833,9 +834,9 @@ def check_energies(path,trajectories,INFOS,hops):
       t=float(x[0])
       e=[ float(i) for i in x[1:] ]
       #check time window start:
-      if t < INFOS['starttime']:
+      if t < starttime:
         continue
-      if t==INFOS['starttime']:
+      if t==starttime:
         eold=e
         etotmin=e[2]
         etotmax=e[2]
@@ -883,7 +884,7 @@ def check_energies(path,trajectories,INFOS,hops):
     if problem:
       s+='at %.2f fs' % tana
     else:
-      s+='OK'
+      s+='OK (time window: %.2f)' % starttime + ' to %.2f' % endtime
     print(s)
   else:
     problem='"energy.out" missing'
