@@ -669,15 +669,15 @@ def check_runtime(path, trajectories,INFOS):
 
 # ======================================================================================================================
 
-def get_GShop(self):
+def get_GShop(path):
   """
-  get time / step of GS hop in a forced to GS hop trajectory - ToDo: change to rest of infrastructure
+  get time / step of GS hop in a forced to GS hop trajectory 
   """
-  with open(self.path+"/output.lis", 'r') as f:
-      for nr, line in enumerate(f):
-          if 'Forced jump to ground state' in line:
-              self.hop = int(f.readlines()[1].split()[0])
-              break
+  with open(path+"/output.lis", 'r') as f:
+    for nr, line in enumerate(f):
+      if 'Forced jump to ground state' in line:
+        return int(f.readlines()[1].split()[0])
+        break
 
 # ======================================================================================================================
 
@@ -819,6 +819,12 @@ def check_energies(path,trajectories,INFOS,hops):
     starttime = INFOS['starttime'][0]
     if INFOS['gsend']:
       print('Trying to find GS hop')
+      try:
+        trajectories[path]['GShopstep'] = get_GShop(path)
+        endime = trajectories[path]['GShopstep']*trajectories[path]['dtstep']
+      except:
+        print('GS hop not found. Set to last time step available')
+        endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     else:
       try:
         endtime = INFOS['endtime'][0]
