@@ -1159,7 +1159,7 @@ def do_calc(INFOS):
         problem = check_length(path,trajectories,len(lis),'output.lis')
       try:
         trajectories = check_energies(path,trajectories,INFOS,hops)  #add time frame
-      except Exception e:
+      except Exception as e:
         print('\n    An error occured while trying to extract the energies.\n \
    Files may be corrupted.\n')
         print(e)
