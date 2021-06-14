@@ -547,6 +547,7 @@ def get_general():
       INFOS['endtime']=question('Define end of analysis in time (in fs)',float,[0.0])
   else:
     INFOS['starttime']=0.0
+    INFOS['gsend']=False
 
   if not LD_dynamics:
     print('HINT: Intruder state check only possible if trajectories were propagated with "coupling overlap".')
