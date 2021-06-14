@@ -23,8 +23,6 @@
 #
 #******************************************
 
-#!/usr/bin/env python2
-
 """
 author: Felix Plasser and Andrew Atkins
 modifications: Karl Michael Ziems
