@@ -886,11 +886,7 @@ def check_energies(path,trajectories,INFOS,hops):
     if problem:
       s+='at %.2f fs' % tana
     else:
-<<<<<<< HEAD
       s+='OK (time window: %.2f' % starttime + ' to %.2f' % endtime + ' fs)'
-=======
-      s+='OK (time window: %.2f)' % starttime + ' to %.2f' % endtime
->>>>>>> main
     print(s)
   else:
     problem='"energy.out" missing'
