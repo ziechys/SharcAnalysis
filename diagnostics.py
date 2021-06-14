@@ -676,8 +676,9 @@ def get_GShop(path):
   with open(path+"/output.lis", 'r') as f:
     for nr, line in enumerate(f):
       if 'Forced jump to ground state' in line:
-        print('GS hop found at time step ',  int(f.readlines()[1].split()[0]))
-        return int(f.readlines()[1].split()[0])
+        hop = int(f.readlines()[1].split()[0])
+        print('GS hop found at time step ',  hop)
+        return hop
         break
 
 # ======================================================================================================================
