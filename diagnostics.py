@@ -866,6 +866,7 @@ def check_energies(path,trajectories,INFOS,hops):
         tana = tana_length
         break
       elif t > endtime:
+        tana = endtime
         break
       hop = False
       currstep = int(t/trajectories[path]['dtstep']) 
