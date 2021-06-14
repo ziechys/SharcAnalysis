@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 #******************************************
 #
@@ -23,7 +23,7 @@
 #
 #******************************************
 
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from copy import deepcopy 
 import math
@@ -49,10 +49,6 @@ except ImportError:
 
 # =========================================================0
 # compatibility stuff
-
-if sys.version_info[0]!=2:
-  print 'This is a script for Python 2!'
-  sys.exit(0)
 
 if sys.version_info[1]<5:
   def any(iterable):
@@ -130,7 +126,7 @@ def readfile(filename):
     out=f.readlines()
     f.close()
   except IOError:
-    print 'File %s does not exist!' % (filename)
+    print('File %s does not exist!' % (filename))
     sys.exit(12)
   return out
 
@@ -145,10 +141,10 @@ def writefile(filename,content):
     elif isinstance(content,str):
       f.write(content)
     else:
-      print 'Content %s cannot be written to file!' % (content)
+      print('Content %s cannot be written to file!' % (content))
     f.close()
   except IOError:
-    print 'Could not write to file %s!' % (filename)
+    print('Could not write to file %s!' % (filename))
     sys.exit(13)
 
 # ======================================================================================================================
@@ -187,7 +183,7 @@ class output_dat:
   def __iter__(self):
     return self
 
-  def next(self):
+  def __next__(self):
     # returns time step, U matrix and diagonal state
     # step
     current=self.current
@@ -208,7 +204,7 @@ class output_dat:
     while True:
       index+=1
       if index>len(self.data) or index==self.startlines[iline+1]:
-        print 'Error reading timestep %i in file %s' % (current,self.filename)
+        print('Error reading timestep %i in file %s' % (current,self.filename))
         sys.exit(11)
       line=self.data[index]
       if 'states (diag, MCH)' in line:
@@ -267,7 +263,7 @@ This script reads output.dat files from SHARC trajectories and checks:
 * total population conservation
 * discontinuities in potential and kinetic energy
   '''
-  print string
+  print(string)
 
 # ======================================================================================================================
 # ======================================================================================================================
@@ -286,7 +282,7 @@ def close_keystrokes():
 def question(question,typefunc,default=None,autocomplete=True,ranges=False):
   if typefunc==int or typefunc==float:
     if not default==None and not isinstance(default,list):
-      print 'Default to int or float question must be list!'
+      print('Default to int or float question must be list!')
       quit(1)
   if typefunc==str and autocomplete:
     readline.set_completer_delims(' \t\n;')
@@ -310,7 +306,7 @@ def question(question,typefunc,default=None,autocomplete=True,ranges=False):
       s+=' (range comprehension enabled)'
     s+=' '
 
-    line=raw_input(s)
+    line=input(s)
     line=re.sub('#.*$','',line).strip()
     if not typefunc==str:
       line=line.lower()
@@ -332,7 +328,7 @@ def question(question,typefunc,default=None,autocomplete=True,ranges=False):
         KEYSTROKES.write(line+' '*(40-len(line))+' #'+s+'\n')
         return False
       else:
-        print 'I didn''t understand you.'
+        print('I didn''t understand you.')
         continue
 
     if typefunc==str:
@@ -348,7 +344,7 @@ def question(question,typefunc,default=None,autocomplete=True,ranges=False):
         KEYSTROKES.write(line+' '*(40-len(line))+' #'+s+'\n')
         return f
       except ValueError:
-        print 'Please enter floats!'
+        print('Please enter floats!')
         continue
 
     if typefunc==int:
@@ -367,9 +363,9 @@ def question(question,typefunc,default=None,autocomplete=True,ranges=False):
         return out
       except ValueError:
         if ranges:
-          print 'Please enter integers or ranges of integers (e.g. "-3~-1  2  5~7")!'
+          print('Please enter integers or ranges of integers (e.g. "-3~-1  2  5~7")!')
         else:
-          print 'Please enter integers!'
+          print('Please enter integers!')
         continue
 
 # ======================================================================================================================
@@ -391,9 +387,9 @@ def print_settings(settings,header='Current settings:'):
     'intruders',
     'extractor_mode'
   ]
-  print header
+  print(header)
   for i in order:
-    print '%22s : %s' % (i,settings[i])
+    print('%22s : %s' % (i,settings[i]))
   return
 
 
@@ -404,35 +400,35 @@ def get_general():
 
   INFOS={}
 
-  print centerstring('Paths to trajectories',60,'-')
-  print '\nPlease enter the paths to all directories containing the "TRAJ_0XXXX" directories.\nE.g. Sing_2/ and Sing_3/. \nPlease enter one path at a time, and type "end" to finish the list.'
+  print(centerstring('Paths to trajectories',60,'-'))
+  print('\nPlease enter the paths to all directories containing the "TRAJ_0XXXX" directories.\nE.g. Sing_2/ and Sing_3/. \nPlease enter one path at a time, and type "end" to finish the list.')
   count=0
   paths=[]
   while True:
     path=question('Path: ',str,'end')
     if path=='end':
       if len(paths)==0:
-        print 'No path yet!'
+        print('No path yet!')
         continue
-      print ''
+      print('')
       break
     path=os.path.expanduser(os.path.expandvars(path))
     if not os.path.isdir(path):
-      print 'Does not exist or is not a directory: %s' % (path)
+      print('Does not exist or is not a directory: %s' % (path))
       continue
     if path in paths:
-      print 'Already included.'
+      print('Already included.')
       continue
     ls=os.listdir(path)
-    print ls
+    print(ls)
     for i in ls:
       if 'TRAJ' in i:
         count+=1
-    print 'Found %i subdirectories in total.\n' % count
+    print('Found %i subdirectories in total.\n' % count)
     paths.append(path)
   INFOS['paths']=paths
-  print INFOS
-  print 'Total number of subdirectories: %i\n' % (count)
+  print(INFOS)
+  print('Total number of subdirectories: %i\n' % (count))
 
 
   # get guessstates from SHARC input of first subdirectory
@@ -449,7 +445,7 @@ def get_general():
       if 'nstates' in line.lower():
         guessstates=[]
         l=re.sub('#.*$','',line).strip().split()
-        print l
+        print(l)
         for i in range(1,len(l)):
           guessstates.append(int(l[i]))
       if 'coupling' in line.lower():
@@ -490,12 +486,12 @@ def get_general():
     defaults['intruders']=True
 
   # get settings
-  print centerstring('Diagnostic settings',60,'-')
-  print '\nPlease, adjust the diagnostic settings according to your preferences.'
-  print 'You can use the following commands:\nshow\t\tPrints the current settings\nhelp\t\tPrints explanations for the keys\nend\t\tSave and continue\n<key> <value>\tAdjust setting.\n'
+  print(centerstring('Diagnostic settings',60,'-'))
+  print('\nPlease, adjust the diagnostic settings according to your preferences.')
+  print('You can use the following commands:\nshow\t\tPrints the current settings\nhelp\t\tPrints explanations for the keys\nend\t\tSave and continue\n<key> <value>\tAdjust setting.\n')
   INFOS['settings']=deepcopy(defaults)
   print_settings(INFOS['settings'])
-  print ''
+  print('')
   while True:
     line=question('? ',str,'end',False).lower()
     if line=='end':
@@ -509,11 +505,11 @@ def get_general():
         print_settings(helptext,header='Explanation for keys:')
       elif len(s)==2:
         if s[1] in helptext:
-          print '%22s : %s' % (s[1],helptext[s[1]])
+          print('%22s : %s' % (s[1],helptext[s[1]]))
       continue
     s=line.split()
     if len(s)!=2:
-      print 'Please enter "<key> <setting>".'
+      print('Please enter "<key> <setting>".')
       continue
     try:
       f=int(s[1])
@@ -539,7 +535,7 @@ def get_general():
 
 
   if not LD_dynamics:
-    print 'HINT: Intruder state check only possible if trajectories were propagated with "coupling overlap".'
+    print('HINT: Intruder state check only possible if trajectories were propagated with "coupling overlap".')
     defaults['settings']=False
 
 
@@ -598,13 +594,13 @@ def check_files(path,trajectories,INFOS):
     s+='OK'
     missing = False
     if INFOS['settings']['missing_output']:
-      print s
+      print(s)
   else:
     s+='Files missing!'
     trajectories[path]['maxsteps']=0
     trajectories[path]['tana']=0.
     missing = True
-    print s
+    print(s)
     #continue
   #print INFOS['settings']['missing_output']
 
@@ -626,7 +622,7 @@ def check_files(path,trajectories,INFOS):
     else:
       s+='    Restart might not be possible.'
     if INFOS['settings']['missing_restart']:
-      print s
+      print(s)
   return trajectories, missing
 
 # ======================================================================================================================
@@ -653,7 +649,7 @@ def check_runtime(path, trajectories,INFOS):
   s+='='*int(25*progress) + ' '*(25-int(25*progress))+']     %.1f of %.1f fs' % (trajectories[path]['laststep']*trajectories[path]['dtstep'], trajectories[path]['maxsteps']*trajectories[path]['dtstep'])
   #s+='\n'
   if INFOS['settings']['normal_termination']:
-    print s
+    print(s)
   return trajectories, f
 
 # ======================================================================================================================
@@ -721,7 +717,7 @@ def check_termination(path, trajectories,INFOS,f):
     else:
       s+='RUNNING'
   if INFOS['settings']['normal_termination']:
-    print s
+    print(s)
   
   return trajectories
 
@@ -787,7 +783,7 @@ def check_energies(path,trajectories,INFOS,hops):
     try:
       problem, tana_length = check_consistency(path,trajectories,f,'energy.out')
     except:
-      print '\n    An error occured while trying to check energy.out for consistency.' 
+      print('\n    An error occured while trying to check energy.out for consistency.') 
       trajectories[path]['error'] = True
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'energy.out')
@@ -844,13 +840,13 @@ def check_energies(path,trajectories,INFOS,hops):
       s+='at %.2f fs' % tana
     else:
       s+='OK'
-    print s
+    print(s)
   else:
     problem='"energy.out" missing'
     s='    Energy:           ' + problem + ' '*(32-len(problem))+'!!'
     trajectories[path]['tana']=0.
     trajectories[path]['problem']=problem
-    print s
+    print(s)
   return trajectories
 
 # ======================================================================================================================
@@ -865,7 +861,7 @@ def check_populations(path,trajectories,INFOS):
     try:
       problem, tana_length = check_consistency(path,trajectories,f,'coeff_diag.out')
     except:
-      print '\n    An error occured while trying to check coeff_diag.out for consistency.'
+      print('\n    An error occured while trying to check coeff_diag.out for consistency.')
       trajectories[path]['error'] = True
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'coeff_diag.out')
@@ -902,13 +898,13 @@ def check_populations(path,trajectories,INFOS):
       s+='at %.2f fs' % tana
     else:
       s+='OK'
-    print s
+    print(s)
   else:
     problem='"coeff_diag.out" missing'
     s='    Population:       ' + problem + ' '*(32-len(problem))+'!!'
     trajectories[path]['tana']=0.
     trajectories[path]['problem']=problem
-    print s
+    print(s)
   return trajectories
 
 # ======================================================================================================================
@@ -964,7 +960,7 @@ def check_intruders(path,trajectories,INFOS,lis,tana,problem_length):
       s+='at %.2f fs' % tana
     else:
       s+='OK'
-    print s
+    print(s)
   return trajectories
 
 # ======================================================================================================================
@@ -975,14 +971,14 @@ def do_calc(INFOS):
 
   sharcpath=os.getenv('SHARC')
   if sharcpath==None:
-    print 'Please set $SHARC to the directory containing the SHARC executables!'
+    print('Please set $SHARC to the directory containing the SHARC executables!')
     sys.exit(1)
   cwd=os.getcwd()
 
   # go through directories
   trajectories={}
   ntraj=0
-  print 'Checking the directories...'
+  print('Checking the directories...')
   for idir in INFOS['paths']:
     ls=os.listdir(idir)
     ls.sort()
@@ -991,14 +987,14 @@ def do_calc(INFOS):
         continue
       path=os.path.join(idir,itraj)
       trajectories[path]={}
-      print centerstring(' '+path+' ',80,'~')+'\n'
+      print(centerstring(' '+path+' ',80,'~')+'\n')
       trajectories[path]['error'] = False
       trajectories[path]['filelength'] = ''
 
       try:
         trajectories, missing = check_files(path,trajectories,INFOS)
       except:
-        print '\n    An error occured while trying to look for the files.\n'
+        print('\n    An error occured while trying to look for the files.\n')
         trajectories[path]['error'] = True
         continue
       if missing:
@@ -1007,16 +1003,16 @@ def do_calc(INFOS):
       try:
         trajectories, f = check_runtime(path, trajectories,INFOS)
       except:
-        print '\n    An error occured while trying to extract the runtime.\n \
-   Files may be corrupted.\n'
+        print('\n    An error occured while trying to extract the runtime.\n \
+   Files may be corrupted.\n')
         trajectories[path]['error'] = True
         continue
 
       try:
         trajectories = check_termination(path, trajectories,INFOS,f)
       except:
-        print '\n    An error occured while trying to extract the status.\n \
-   Files may be corrupted.\n'
+        print('\n    An error occured while trying to extract the status.\n \
+   Files may be corrupted.\n')
         trajectories[path]['error'] = True   
         continue
  
@@ -1040,7 +1036,7 @@ def do_calc(INFOS):
           update=True
       if INFOS['settings']['always_update']:
         update=True
-        print 'update is true'
+        print('update is true')
 
       # run extractor
       if update:
@@ -1068,7 +1064,7 @@ def do_calc(INFOS):
           else:
             io=sp.call(sharcpath+'/data_extractor.x %s output.dat > /dev/null 2> /dev/null' % opt ,shell=True)
           if io!=0:
-            print 'WARNING: extractor call failed for %s! Exit code %i' % (path,io)
+            print('WARNING: extractor call failed for %s! Exit code %i' % (path,io))
           os.chdir(cwd)
           sys.stdout.write('OK\n')
       else:
@@ -1091,35 +1087,35 @@ def do_calc(INFOS):
       try:
         problem, tana = check_consistency(path,trajectories,f,'output.lis')
       except:
-        print '\n    An error occured while trying to check output.lis for consistency.'
+        print('\n    An error occured while trying to check output.lis for consistency.')
         trajectories[path]['error'] = True 
       if problem == '':
         problem = check_length(path,trajectories,len(lis),'output.lis')
       try:
         trajectories = check_energies(path,trajectories,INFOS,hops)
       except:
-        print '\n    An error occured while trying to extract the energies.\n \
-   Files may be corrupted.\n'
+        print('\n    An error occured while trying to extract the energies.\n \
+   Files may be corrupted.\n')
         trajectories[path]['error'] = True   
       try:
         trajectories = check_populations(path,trajectories,INFOS)
       except:
-        print '\n    An error occured while trying to extract the populations.\n \
-   Files may be corrupted.\n'
+        print('\n    An error occured while trying to extract the populations.\n \
+   Files may be corrupted.\n')
         trajectories[path]['error'] = True   
       try:
         trajectories = check_intruders(path,trajectories,INFOS,lis,tana,problem)
       except:
-        print '\n    An error occured while trying to extract possible intruder states.\n \
-   Files may be corrupted.\n'
+        print('\n    An error occured while trying to extract possible intruder states.\n \
+   Files may be corrupted.\n')
         trajectories[path]['error'] = True   
 
 
       #sys.stdout.write(s)
 
       if  trajectories[path]['filelength'] != '':
-        print trajectories[path]['filelength']
-      print '\n\n'
+        print(trajectories[path]['filelength'])
+      print('\n\n')
 
 
 
@@ -1127,10 +1123,10 @@ def do_calc(INFOS):
   #pprint.pprint(trajectories)
   #print a summarizing table 
   trajsorted=sorted(trajectories,key=lambda x: trajectories[x]['tana'])
-  print '\n\n'+centerstring(' Summary ',80,'=')+'\n'
+  print('\n\n'+centerstring(' Summary ',80,'=')+'\n')
 
-  print '%30s %6s %6s %6s %6s' % ('Trajectory','Files?','Status','Length','T_use')
-  print '%30s %6s %6s %6s %6s\n' % ('','','','(fs)','(fs)')
+  print('%30s %6s %6s %6s %6s' % ('Trajectory','Files?','Status','Length','T_use'))
+  print('%30s %6s %6s %6s %6s\n' % ('','','','(fs)','(fs)'))
 
   maxtime=0.
   for i in trajectories:
@@ -1176,14 +1172,14 @@ def do_calc(INFOS):
     diagram+='-'*(int(25.*length/full)-int(25.*t_use/full))
     diagram+=' '*(25-int(25.*length/full))
     diagram+=']'
-    print '%30s %6s %6s %6s %6s   %s' % (itraj,complete,status,length,t_use,diagram)
+    print('%30s %6s %6s %6s %6s   %s' % (itraj,complete,status,length,t_use,diagram))
     hist_data[hist.put(t_use)]+=1
 
   s='\nThis many trajectories can be used for an analysis up to the given time:\n'
   total=sum(hist_data)
   for i in range(nhisto):
     s+='up to % 5.1f fs:    % 3i  trajectories\n' % (hist.binlist[i],total-sum(hist_data[:i+1]))
-  print s
+  print(s)
 
   # get a guess for the T_use threshold
   t_uses=[ trajectories[itraj]['tana'] for itraj in trajsorted ]
@@ -1194,8 +1190,8 @@ def do_calc(INFOS):
       topt=t
       nopt=total-i
 
-  print centerstring(' Trajectory Flagging ',60,'-')
-  print '\nYou can now flag the trajectories according to their maximum usable time.\nIn this way, you can restrict the analysis tools to the set of trajectories with sufficient simulation time.\n'
+  print(centerstring(' Trajectory Flagging ',60,'-'))
+  print('\nYou can now flag the trajectories according to their maximum usable time.\nIn this way, you can restrict the analysis tools to the set of trajectories with sufficient simulation time.\n')
   flag=question('Do you want to flag the trajectories?',bool,True)
   if flag:
     t_thres=question('Threshold for T_use (fs):',float,[topt])[0]
@@ -1212,9 +1208,9 @@ def do_calc(INFOS):
         if not os.path.isfile(f):
           open(f,'w').close()
 
-    print
-    print 'Flagged  %i trajectories for analysis.' % (nanalyze)
-    print 'Excluded %i trajectories from analysis.' % (total-nanalyze)
+    print()
+    print('Flagged  %i trajectories for analysis.' % (nanalyze))
+    print('Excluded %i trajectories from analysis.' % (total-nanalyze))
 
 
   return INFOS
@@ -1238,12 +1234,12 @@ This interactive program reads trajectory files and checks their validity.
 
   INFOS=get_general()
 
-  print centerstring('Full input',60,'#')+'\n'
+  print(centerstring('Full input',60,'#')+'\n')
   for item in INFOS:
-    print item, ' '*(25-len(item)), INFOS[item]
-  print ''
+    print(item, ' '*(25-len(item)), INFOS[item])
+  print('')
   calc=question('Do you want to do the specified analysis?',bool,True)
-  print ''
+  print('')
 
   if calc:
     INFOS=do_calc(INFOS)
@@ -1257,5 +1253,5 @@ if __name__ == '__main__':
   try:
     main()
   except KeyboardInterrupt:
-    print '\nCtrl+C makes me a sad SHARC ;-(\n'
+    print('\nCtrl+C makes me a sad SHARC ;-(\n')
     quit(0)
