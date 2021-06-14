@@ -537,7 +537,14 @@ def get_general():
     else:
       INFOS['settings'][s[0]]=s[1]
 
-
+  #Time window
+  print(centerstring('Analysis time window',60,'-'))
+  timewindow = question('Do you want to restrict the time window for analysis?',bool,False)
+  if timewindow:
+    INFOS['starttime']=question('Define start of analysis in time (in fs)',float,[0.0])
+    INFOS['gsend']=question('Do you want to define end of analysis in time via forced GS hop?',bool,True)
+    if not INFOS['gsend']:
+      INFOS['endtime']=question('Define end of analysis in time (in fs)',float,[0.0])
 
   if not LD_dynamics:
     print('HINT: Intruder state check only possible if trajectories were propagated with "coupling overlap".')
@@ -656,6 +663,18 @@ def check_runtime(path, trajectories,INFOS):
   if INFOS['settings']['normal_termination']:
     print(s)
   return trajectories, f
+
+# ======================================================================================================================
+
+def get_GShop(self):
+  """
+  get time / step of GS hop in a forced to GS hop trajectory - ToDo: change to rest of infrastructure
+  """
+  with open(self.path+"/output.lis", 'r') as f:
+      for nr, line in enumerate(f):
+          if 'Forced jump to ground state' in line:
+              self.hop = int(f.readlines()[1].split()[0])
+              break
 
 # ======================================================================================================================
 
@@ -792,7 +811,7 @@ def check_energies(path,trajectories,INFOS,hops):
       trajectories[path]['error'] = True
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'energy.out')
-    for line in f:
+    for line in f: #go through time steps in energy.out
       if '#' in line:
         continue
       x=line.split()
@@ -1097,7 +1116,7 @@ def do_calc(INFOS):
       if problem == '':
         problem = check_length(path,trajectories,len(lis),'output.lis')
       try:
-        trajectories = check_energies(path,trajectories,INFOS,hops)
+        trajectories = check_energies(path,trajectories,INFOS,hops)  #add time frame
       except:
         print('\n    An error occured while trying to extract the energies.\n \
    Files may be corrupted.\n')
@@ -1117,6 +1136,8 @@ def do_calc(INFOS):
 
 
       #sys.stdout.write(s)
+      print(trajectories)
+      sys.exit(0)
 
       if  trajectories[path]['filelength'] != '':
         print(trajectories[path]['filelength'])
