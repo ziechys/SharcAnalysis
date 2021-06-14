@@ -830,13 +830,15 @@ def check_energies(path,trajectories,INFOS,hops):
       endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     if starttime > trajectories[path]['laststep']*trajectories[path]['dtstep']:
       print('ERROR: Your chosen starttime is larger then the length of the current trajectory!')
-      sys.exit(0)
+      sys.exit(1)
     if starttime%trajectories[path]['dtstep'] != 0.0:
       print('ERROR: Your starttime was not chosen in units of dt!')
       print('Time step dt: ',trajectories[path]['dtstep'], ' start time: ', starttime)
+      sys.exit(1)
     if endtime%trajectories[path]['dtstep'] != 0.0:
       print('ERROR: Your starttime was not chosen in units of dt!')
       print('Time step dt: ',trajectories[path]['dtstep'], ' end time: ', endtime)
+      sys.exit(1)
 
     for line in f: #go through time steps in energy.out
       if '#' in line:
