@@ -676,6 +676,7 @@ def get_GShop(path):
   with open(path+"/output.lis", 'r') as f:
     for nr, line in enumerate(f):
       if 'Forced jump to ground state' in line:
+        print('GS hop found at time step ',  int(f.readlines()[1].split()[0]))
         return int(f.readlines()[1].split()[0])
         break
 
@@ -818,13 +819,13 @@ def check_energies(path,trajectories,INFOS,hops):
     #Check how time window is constructed:
     starttime = INFOS['starttime'][0]
     if INFOS['gsend']:
-      print('Trying to find GS hop')
+      #print('Trying to find GS hop')
       try:
         trajectories[path]['GShopstep'] = get_GShop(path)
         endtime = trajectories[path]['GShopstep']*trajectories[path]['dtstep']
       except Exception as e:
         print('GS hop not found. Set to last time step available')
-        print(e)
+        #print(e)
         endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     else:
       try:
@@ -1161,7 +1162,7 @@ def do_calc(INFOS):
       except Exception as e:
         print('\n    An error occured while trying to extract the energies.\n \
    Files may be corrupted.\n')
-        print(e)
+        #print(e)
         trajectories[path]['error'] = True   
       try:
         trajectories = check_populations(path,trajectories,INFOS)
