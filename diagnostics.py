@@ -545,6 +545,8 @@ def get_general():
     INFOS['gsend']=question('Do you want to define end of analysis in time via forced GS hop?',bool,True)
     if not INFOS['gsend']:
       INFOS['endtime']=question('Define end of analysis in time (in fs)',float,[0.0])
+  else:
+    INFOS['starttime']=0.0
 
   if not LD_dynamics:
     print('HINT: Intruder state check only possible if trajectories were propagated with "coupling overlap".')
@@ -811,18 +813,35 @@ def check_energies(path,trajectories,INFOS,hops):
       trajectories[path]['error'] = True
     if problem == '':
       problem = check_length(path,trajectories,len(f)-3,'energy.out')
+
+    #Check how endtime is constructed:
+    if INFOS['gsend']:
+      print('Trying to find GS hop')
+    else:
+      try:
+        endtime = INFOS['endtime']
+      except:
+        print('No endtime given. Taking maxstep')
+        endtime = trajectories[path]['maxstep']*trajectories[path]['dtstep']
+        pass
+
     for line in f: #go through time steps in energy.out
       if '#' in line:
         continue
       x=line.split()
       t=float(x[0])
       e=[ float(i) for i in x[1:] ]
-      if t==0.:
+      #check time window start:
+      if t < INFOS['starttime']:
+        continue
+      if t==INFOS['starttime']:
         eold=e
         etotmin=e[2]
         etotmax=e[2]
       elif t > tana_length:
         tana = tana_length
+        break
+      elif t > endtime:
         break
       hop = False
       currstep = int(t/trajectories[path]['dtstep']) 
