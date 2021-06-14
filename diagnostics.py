@@ -825,7 +825,7 @@ def check_energies(path,trajectories,INFOS,hops):
         endtime = trajectories[path]['GShopstep']*trajectories[path]['dtstep']
       except Exception as e:
         print('GS hop not found. Set to last time step available')
-        #print(e)
+        print(e)
         endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     else:
       try:
@@ -1159,10 +1159,10 @@ def do_calc(INFOS):
         problem = check_length(path,trajectories,len(lis),'output.lis')
       try:
         trajectories = check_energies(path,trajectories,INFOS,hops)  #add time frame
-      except Exception as e:
+      except Exception e:
         print('\n    An error occured while trying to extract the energies.\n \
    Files may be corrupted.\n')
-        #print(e)
+        print(e)
         trajectories[path]['error'] = True   
       try:
         trajectories = check_populations(path,trajectories,INFOS)
