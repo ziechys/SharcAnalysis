@@ -27,7 +27,7 @@ def replace_nans(data):
         datas[i] = np.nan_to_num(datas[i] , nan=0.0)
 
     #save
-    np.savetxt(data, np.transpose([time, norm, *datas]), fmt='%20.12E', delimiter='', header=str(header[0])+str(header[1])+str(header[2][:-1]))
+    np.savetxt(data, np.transpose([time, norm, *datas]), fmt='%23.12E', delimiter='', header=str(header[0])+str(header[1])+str(header[2][:-1]))
 
 folder = sys.argv[1]
 trajs = os.listdir(folder)
