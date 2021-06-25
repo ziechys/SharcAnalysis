@@ -56,6 +56,12 @@ Slight modifications of original SHARC script:
 
 Use ```python2 setup_traj.py``` 
 
+## corr_laser.py
+Script to correct laser hop bug: 
+In SHARC resonant laser hops can occur even after the laser intensity reached zero. This script (crudely) solves this problem by altering the SHARC produced (laser.x) laser file and setting the frequency after the laser puls ended to high values and, thus, supressing resonant laser hops.
+
+Use ```python3 corr_laser.py <laser-file> <time after which laser hops should be avoided>``` 
+
 ## corr_nan.py
 Script to correct 'nan' bug occuring for forced GS hop setup.
 Script reads MD output substitutes 'nan' entries in coefficient data with expected coefficient for a GS hop. 
@@ -68,7 +74,7 @@ Get all final structures of a MD run in one file (e.g. to view with Molden)
 
 Use ```python3 end_struc.py <path-to-trajectories>``` 
 
-## post_analysis.py
+## post_analysis.py (now partially incorporated in diagnostics.py)
 Script to analyse SHARC MD simulations with forced GShop.
 The script checks if the trajectories behave ordinary befor the GShop and flags them if so or not (DONT_ANALZE flag).
 
