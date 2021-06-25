@@ -46,6 +46,8 @@ Slight modifications of original SHARC script:
 - Define time window of analysis
 - Detect forced GS hop
 
+Use ```python2 diagnostics.py``` 
+
 ## setup_traj.py
 Setting up trajectories for SHARC run
 
