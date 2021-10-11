@@ -592,9 +592,13 @@ def ft_analysis(INFOS):
       # Analysis B: Create coherent structure by adding up all structures at all time steps (see essential dynamics)
 
       #Returns a 3N x T matrix with all the coordinates of the timesteps (could be done with ref structure - think about it)    
-      coor_matrix = trajectory.ret_coor_matrix()
-      
+      #comment next line if constant traj apporach is not wished: Here we make sure that after a GShop the geometry is frozen at the GH hop geometry - constant number of trajectories.
+      coor_matrix = trajectory.ret_coor_matrix(filltoend=num_steps-trajectory.num_tsteps)
+      #print(numpy.shape(coor_matrix))
       # Obtain time-resovled coherent structure
+      #if numpy.shape(coor_matrix)[0] < num_steps:
+      #    print('ends early')
+      #sys.exit(0)
       for nr, tstep in enumerate(coor_matrix):
         cross_num_array[nr] += 1
         cross_sum_array[nr] += tstep
