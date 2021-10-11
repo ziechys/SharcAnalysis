@@ -133,7 +133,7 @@ class trajectory:
 
         #obconversion.CloseOutFile()
         
-    def ret_coor_matrix(self, relative=False):
+    def ret_coor_matrix(self, relative=False,filltoend=None):
         """
         Returns a 3N x T matrix with all the coordinates of the timesteps.
         If <relative=True> coordinates relative to <ref_struc> are returned.
@@ -143,7 +143,10 @@ class trajectory:
             coor_list = [structure.ret_vector() - ref_vect for structure in self.structures]
         else:
             coor_list = [structure.ret_vector() for structure in self.structures]
-        
+      
+        if not filltoend is None:
+            coor_list = coor_list + [self.structures[-1].ret_vector()] * filltoend
+
         return numpy.array(coor_list)
     
     def autocorr(self, mass_mat=None, out_file='RESULTS/autocorr.txt'):
