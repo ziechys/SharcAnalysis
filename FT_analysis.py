@@ -20,8 +20,9 @@ descr: Analyse structural dynamics of coherent classical motion during relaxatio
 #warnings.simplefilter("ignore", category=ResourceWarning) 
 import os, sys, shutil, re, datetime, readline, copy
 from shutil import copyfile
-os.chdir(os.path.dirname(sys.argv[0]))
-sys.path.append('sharclib')
+#os.chdir(os.path.dirname(sys.argv[0]))
+sys.path.insert(0, '/home/ci38zab/scripts/SharcAnalysis/sharclib')
+#sys.path.append('sharclib')
 try:
     import numpy
 except ImportError:
@@ -50,7 +51,7 @@ from scipy import optimize
 import math
 
 try:
-    from openbabel import openbabel
+    import openbabel
 except ImportError:
     print('openbabel.py package not installed')
     sys.exit()
@@ -503,7 +504,7 @@ def ft_analysis(INFOS):
       if INFOS['all']:
         print('Performing internal coordinate analysis of individual trajectory...')
         #ToDo: Change to python3 for Linux machine
-        os.system("python geo.py -g " + folder_name + "/output.xyz -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
+        os.system("geo.py -g " + folder_name + "/output.xyz -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + folder_name + "/FT_Geo.out")
        
         # Read Geo data from specific internal coordinates
         time, *geomdata = numpy.loadtxt(folder_name+'/FT_Geo.out',unpack=True)
@@ -580,9 +581,9 @@ def ft_analysis(INFOS):
             plt.close()
 
           if INFOS['onefolder']:
-            copyfile(folder_name + 'FT.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT.pdf')
+            copyfile(folder_name + 'FT.pdf',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT.pdf')
             if INFOS['post']:
-              copyfile(folder_name + 'FT_processed.pdf ',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT_processed.pdf')
+              copyfile(folder_name + 'FT_processed.pdf',INFOS['savedir'] + '/' + folder_name[-11:-1]+'_FT_processed.pdf')
       
       #sys.exit(0)
 
@@ -651,7 +652,7 @@ def ft_analysis(INFOS):
     ref_struc.make_trajectory(cross_mean_array,coh_outdir)
 
     #Convert to internal coordinates data
-    os.system("python geo.py -g " + coh_outdir + " -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + coh_geo_outdir) 
+    os.system("geo.py -g " + coh_outdir + " -t " + str(INFOS['timestep']) + " < " + INFOS['geo'] + " > " + coh_geo_outdir) 
     # Read Geo data from specific internal coordinates
     time, *geomdata = numpy.loadtxt(coh_geo_outdir,unpack=True)
     time = time/au2fs
