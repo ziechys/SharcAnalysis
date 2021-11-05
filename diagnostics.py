@@ -824,9 +824,11 @@ def check_energies(path,trajectories,INFOS,hops):
       #print('Trying to find GS hop')
       try:
         trajectories[path]['GShopstep'] = get_GShop(path)
+        trajectories[path]['GSexist'] = True
         endtime = trajectories[path]['GShopstep']*trajectories[path]['dtstep']
       except Exception as e:
         print('GS hop not found. Set to last time step available')
+        trajectories[path]['GSexist'] = False
         #print(e)
         endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     else:
@@ -839,8 +841,8 @@ def check_energies(path,trajectories,INFOS,hops):
     if endtime > trajectories[path]['laststep']*trajectories[path]['dtstep']:
       endtime = trajectories[path]['laststep']*trajectories[path]['dtstep']
     if starttime > trajectories[path]['laststep']*trajectories[path]['dtstep']:
-      print('ERROR: Your chosen starttime is larger then the length of the current trajectory!')
-      sys.exit(1)
+      print('WARNING: Your chosen starttime is larger then the length of the current trajectory!')
+      #sys.exit(1)
     if starttime > 0.0:
         if starttime%trajectories[path]['dtstep'] != 0.0:
             print('ERROR: Your starttime was not chosen in units of dt!')
@@ -903,6 +905,8 @@ def check_energies(path,trajectories,INFOS,hops):
     if len(f) <= 3:
       tana = 0. 
       problem='Empty energy.out file'
+    if not problem:
+      tana = trajectories[path]['maxsteps']*trajectories[path]['dtstep']
     trajectories[path]['tana']=tana
     trajectories[path]['problem']=problem
     s='    Energy:           ' + problem + ' '*(32-len(problem))
@@ -961,6 +965,8 @@ def check_populations(path,trajectories,INFOS):
     if len(f) <= 3:
       tana = 0. 
       problem='Empty coeff_diag.out file'
+    if not problem:
+      tana = trajectories[path]['maxsteps']*trajectories[path]['dtstep']
     trajectories[path]['tana']=min(tana,trajectories[path]['tana'])
     trajectories[path]['problem']=problem
     s='    Population:       ' + problem + ' '*(32-len(problem))
@@ -1023,6 +1029,8 @@ def check_intruders(path,trajectories,INFOS,lis,tana,problem_length):
           break
     else:
       tana = trajectories[path]['laststep']*trajectories[path]['dtstep']
+    if not problem:
+      tana = trajectories[path]['maxsteps']*trajectories[path]['dtstep'] 
     trajectories[path]['tana']=min(tana,trajectories[path]['tana'])
     s='    Intruder states:  ' + problem + ' '*(32-len(problem))
     trajectories[path]['problem']=problem
@@ -1245,6 +1253,16 @@ def do_calc(INFOS):
     diagram+=']'
     print('%30s %6s %6s %6s %6s   %s' % (itraj,complete,status,length,t_use,diagram))
     hist_data[hist.put(t_use)]+=1
+
+  #List trajectories withoutr GS hop if it was chosen as analysis tool
+  if INFOS['gsend']:
+    print('The following trajectories did not detect a GS hop. Check manually')
+    for traj in trajectories:
+      try:
+        if not trajectories[traj]['GSexist']:
+          print(traj)
+      except:
+        pass
 
   s='\nThis many trajectories can be used for an analysis up to the given time:\n'
   total=sum(hist_data)
