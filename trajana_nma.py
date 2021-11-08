@@ -641,7 +641,7 @@ def nm_analysis(INFOS):
 
     ##########################################
     #
-    # Analyse A): Time averged, Traj averaged
+    # Analyse A): Time averged, Traj averaged - each trajectory is analysed individually - NO coherent WP
 
 
     # A) i): Unweighted approach: time average independent of number of steps in trajectory: Long trajectories more prominent
@@ -658,7 +658,7 @@ def nm_analysis(INFOS):
     tm_tot_av.write_header_line(['Period (fs)']+header[2][1:])
 
     for i,interv in enumerate(ana_ints):
-        exp_x = sum_array[i] / num_points[i]     #average of normal mode decomposition over all trajectories each averaged over all time steps of individual traj. devided by all time steps over all trajs
+        exp_x = sum_array[i] / num_points[i]     #average of normal mode decomposition over all trajectories each averaged over all time steps of individual traj. divided by all time steps over all trajs
         exp_x2 = sum_sq_array[i] / num_points[i] #same squared
         try:
             std = ((exp_x2 - exp_x**2) )**.5   # empirical standard deviation
@@ -772,7 +772,7 @@ def nm_analysis(INFOS):
 
     ##########################################
     #
-    # Analyse B): Trajectory averged for each time step, Time averaged
+    # Analyse B): Trajectory averaged for each time step, Time averaged  - coherent WP approach-ish. Coherent WP of normal mode decomposition -> No symmetry problem
 
 
     # B) i): Unweighted approach: Each time step independent of number of trajectories contributing to it
