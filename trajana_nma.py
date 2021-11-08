@@ -704,8 +704,8 @@ def nm_analysis(INFOS):
         tm_totw_av.write_line([str(interv[0])+'-'+str(interv[1])] + exp_x.tolist())
         tm_totw_std.write_line([str(interv[0])+'-'+str(interv[1])] + std.tolist())
 
-    tm_totw_av.write_to_file(out_dir + '/total_weighted_av.txt')
-    tm_totw_std.write_to_file(out_dir + '/total_weighted_std.txt')
+    tm_totw_av.write_to_file(out_dir + '/total_weighted_av.txt') 
+    tm_totw_std.write_to_file(out_dir + '/total_weighted_std.txt') #recommended use
 
 #    # determine the total standard deviation, see Eq.8.99 SHARC manual (time integral first, then traj average
 #    tm_tot_std = file_handler.table_maker([35]+num_vib*[20])
@@ -799,7 +799,7 @@ def nm_analysis(INFOS):
         std = std * mult_array
 
         tm_coh_av.write_line([str(st)+'-'+str(en)] + exp_x.tolist())
-        tm_coh_std.write_line([str(st)+'-'+str(en)] + std.tolist())
+        tm_coh_std.write_line([str(st)+'-'+str(en)] + std.-tolist())
 
     tm_coh_av.write_to_file(out_dir + '/coh_av.txt')
     tm_coh_std.write_to_file(out_dir + '/coh_std.txt') 
@@ -810,12 +810,12 @@ def nm_analysis(INFOS):
         cross_sum_av_array[i] = cross_sum_array[i] / cross_num_array[i]
     #cross_sum_av_array = cross_sum_array / cross_num_array #weigh each time step with number of trajs in it
     # get the variance of the time averaged structures - Eq. 8.98 (traj average first, then time integral)
-    tm_cohw_std = file_handler.table_maker([35]+num_vib*[20])
+    tm_cohw_std = file_handler.table_maker([35]+num_vib*[30])
     tm_cohw_std.write_header_line(['Nr']+header[0][:-1])
     tm_cohw_std.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_cohw_std.write_header_line(['Period (fs)']+header[2][1:])
 
-    tm_cohw_av = file_handler.table_maker([35]+num_vib*[20])
+    tm_cohw_av = file_handler.table_maker([35]+num_vib*[30])
     tm_cohw_av.write_header_line(['Nr']+header[0][:-1])
     tm_cohw_av.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_cohw_av.write_header_line(['Period (fs)']+header[2][1:])
@@ -835,7 +835,7 @@ def nm_analysis(INFOS):
         tm_cohw_std.write_line([str(st)+'-'+str(en)] + std.tolist())
 
     tm_cohw_av.write_to_file(out_dir + '/coh_weighted_av.txt')
-    tm_cohw_std.write_to_file(out_dir + '/coh_weighted_std.txt')
+    tm_cohw_std.write_to_file(out_dir + '/coh_weighted_std.txt') #recommended use
 
     ##################################
     #
