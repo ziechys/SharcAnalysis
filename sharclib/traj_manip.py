@@ -213,7 +213,7 @@ class trajectory:
             #Absolute values or not ?
             #for i in abs_list:
             #    nma_vect[i-1] = abs(nma_vect[i-1])
-            #nma_vect = abs(nma_vect)
+            nma_vect = abs(nma_vect)
             tm.write_line([timestep*istruct]+[coor for coor in nma_vect])
             nma_list += [nma_vect]
         tm.write_to_file(out_file) #Normal mode decomposition for each traj for each time step

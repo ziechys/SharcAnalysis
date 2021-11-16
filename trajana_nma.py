@@ -599,6 +599,8 @@ def nm_analysis(INFOS):
                    st = interv[0] #interval start step
                    en = interv[1] #interval end step
                    np = nma_list[st:en].shape[0] # = number of time steps in traj for given interval
+                   if np == 0:
+                     continue
                    num_points[ii] += np
                    sa = numpy.add.reduce(nma_list[st:en]) # add the values in one column vector = summing modes over time interval
                    sum_array[ii] += sa  #sum up individual traj
@@ -777,12 +779,12 @@ def nm_analysis(INFOS):
 
     # B) i): Unweighted approach: Each time step independent of number of trajectories contributing to it
 
-    tm_coh_std = file_handler.table_maker([35]+num_vib*[20])
+    tm_coh_std = file_handler.table_maker([35]+num_vib*[30])
     tm_coh_std.write_header_line(['Nr']+header[0][:-1])
     tm_coh_std.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_coh_std.write_header_line(['Period (fs)']+header[2][1:])
 
-    tm_coh_av = file_handler.table_maker([35]+num_vib*[20])
+    tm_coh_av = file_handler.table_maker([35]+num_vib*[30])
     tm_coh_av.write_header_line(['Nr']+header[0][:-1])
     tm_coh_av.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_coh_av.write_header_line(['Period (fs)']+header[2][1:])
@@ -799,7 +801,7 @@ def nm_analysis(INFOS):
         std = std * mult_array
 
         tm_coh_av.write_line([str(st)+'-'+str(en)] + exp_x.tolist())
-        tm_coh_std.write_line([str(st)+'-'+str(en)] + std.-tolist())
+        tm_coh_std.write_line([str(st)+'-'+str(en)] + std.tolist())
 
     tm_coh_av.write_to_file(out_dir + '/coh_av.txt')
     tm_coh_std.write_to_file(out_dir + '/coh_std.txt') 
