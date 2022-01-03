@@ -594,6 +594,8 @@ def ft_analysis(INFOS):
       #Returns a 3N x T matrix with all the coordinates of the timesteps (could be done with ref structure - think about it)    
       #comment next line if constant traj apporach is not wished: Here we make sure that after a GShop the geometry is frozen at the GH hop geometry - constant number of trajectories.
       coor_matrix = trajectory.ret_coor_matrix(filltoend=num_steps-trajectory.num_tsteps)
+      #WARNING: This analysis suffers a substantial problem: Due to high symmetry of the nuclear movement featured might be averaged out in the total nuclear wave packet. 
+      # Best way forward here would to match each trajectory as done for the time-resolved 1D-PES problem.
       #print(numpy.shape(coor_matrix))
       # Obtain time-resovled coherent structure
       #if numpy.shape(coor_matrix)[0] < num_steps:

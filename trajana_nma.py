@@ -599,6 +599,8 @@ def nm_analysis(INFOS):
                    st = interv[0] #interval start step
                    en = interv[1] #interval end step
                    np = nma_list[st:en].shape[0] # = number of time steps in traj for given interval
+                   if np == 0:
+                     continue
                    num_points[ii] += np
                    sa = numpy.add.reduce(nma_list[st:en]) # add the values in one column vector = summing modes over time interval
                    sum_array[ii] += sa  #sum up individual traj
@@ -641,7 +643,7 @@ def nm_analysis(INFOS):
 
     ##########################################
     #
-    # Analyse A): Time averged, Traj averaged
+    # Analyse A): Time averged, Traj averaged - each trajectory is analysed individually - NO coherent WP
 
 
     # A) i): Unweighted approach: time average independent of number of steps in trajectory: Long trajectories more prominent
@@ -658,7 +660,7 @@ def nm_analysis(INFOS):
     tm_tot_av.write_header_line(['Period (fs)']+header[2][1:])
 
     for i,interv in enumerate(ana_ints):
-        exp_x = sum_array[i] / num_points[i]     #average of normal mode decomposition over all trajectories each averaged over all time steps of individual traj. devided by all time steps over all trajs
+        exp_x = sum_array[i] / num_points[i]     #average of normal mode decomposition over all trajectories each averaged over all time steps of individual traj. divided by all time steps over all trajs
         exp_x2 = sum_sq_array[i] / num_points[i] #same squared
         try:
             std = ((exp_x2 - exp_x**2) )**.5   # empirical standard deviation
@@ -704,8 +706,8 @@ def nm_analysis(INFOS):
         tm_totw_av.write_line([str(interv[0])+'-'+str(interv[1])] + exp_x.tolist())
         tm_totw_std.write_line([str(interv[0])+'-'+str(interv[1])] + std.tolist())
 
-    tm_totw_av.write_to_file(out_dir + '/total_weighted_av.txt')
-    tm_totw_std.write_to_file(out_dir + '/total_weighted_std.txt')
+    tm_totw_av.write_to_file(out_dir + '/total_weighted_av.txt') 
+    tm_totw_std.write_to_file(out_dir + '/total_weighted_std.txt') #recommended use
 
 #    # determine the total standard deviation, see Eq.8.99 SHARC manual (time integral first, then traj average
 #    tm_tot_std = file_handler.table_maker([35]+num_vib*[20])
@@ -772,17 +774,17 @@ def nm_analysis(INFOS):
 
     ##########################################
     #
-    # Analyse B): Trajectory averged for each time step, Time averaged
+    # Analyse B): Trajectory averaged for each time step, Time averaged  - coherent WP approach-ish. Coherent WP of normal mode decomposition -> No symmetry problem
 
 
     # B) i): Unweighted approach: Each time step independent of number of trajectories contributing to it
 
-    tm_coh_std = file_handler.table_maker([35]+num_vib*[20])
+    tm_coh_std = file_handler.table_maker([35]+num_vib*[30])
     tm_coh_std.write_header_line(['Nr']+header[0][:-1])
     tm_coh_std.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_coh_std.write_header_line(['Period (fs)']+header[2][1:])
 
-    tm_coh_av = file_handler.table_maker([35]+num_vib*[20])
+    tm_coh_av = file_handler.table_maker([35]+num_vib*[30])
     tm_coh_av.write_header_line(['Nr']+header[0][:-1])
     tm_coh_av.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_coh_av.write_header_line(['Period (fs)']+header[2][1:])
@@ -810,12 +812,12 @@ def nm_analysis(INFOS):
         cross_sum_av_array[i] = cross_sum_array[i] / cross_num_array[i]
     #cross_sum_av_array = cross_sum_array / cross_num_array #weigh each time step with number of trajs in it
     # get the variance of the time averaged structures - Eq. 8.98 (traj average first, then time integral)
-    tm_cohw_std = file_handler.table_maker([35]+num_vib*[20])
+    tm_cohw_std = file_handler.table_maker([35]+num_vib*[30])
     tm_cohw_std.write_header_line(['Nr']+header[0][:-1])
     tm_cohw_std.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_cohw_std.write_header_line(['Period (fs)']+header[2][1:])
 
-    tm_cohw_av = file_handler.table_maker([35]+num_vib*[20])
+    tm_cohw_av = file_handler.table_maker([35]+num_vib*[30])
     tm_cohw_av.write_header_line(['Nr']+header[0][:-1])
     tm_cohw_av.write_header_line(['Wavenumber (1/cm)']+header[1][1:])
     tm_cohw_av.write_header_line(['Period (fs)']+header[2][1:])
@@ -835,7 +837,7 @@ def nm_analysis(INFOS):
         tm_cohw_std.write_line([str(st)+'-'+str(en)] + std.tolist())
 
     tm_cohw_av.write_to_file(out_dir + '/coh_weighted_av.txt')
-    tm_cohw_std.write_to_file(out_dir + '/coh_weighted_std.txt')
+    tm_cohw_std.write_to_file(out_dir + '/coh_weighted_std.txt') #recommended use
 
     ##################################
     #

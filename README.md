@@ -4,6 +4,21 @@ This is a collection of analysis scripts for SHARC, Surface Hopping including Ar
 
 Some scripts are based on or slight modification of the scripts provided by SHARC (original scripts see: https://github.com/sharc-md/sharc)
 
+## traj_module.py
+A python module with functions to read, write and manipulate (Sharc) trajectories.
+Based on pymatgen Molecule objects. 
+
+Features: 
+- Read xyz trajectory file
+- Visualise single Molecules or full trajectories in Jupyter Notebook (using py3Dmol) 
+- Operate on molecules and trajectories with symmetry operation
+- Molecule matching using Hungarian algorithm
+- Combining several trajectory files to combined single trajectory (with weighting) 
+- Internal coordinaate analysis of trajectory (or single Molecule)
+- FT anaylsis of trajectories (as done in FT_analysis.py) 
+- Write trajectory file into separate single Gaussian inputs 
+- Read in and plot 1D PES calculations, e.g. from previously calculated points along trajectory 
+
 ## FT_analysis.py
 Fourier transformation analysis of the relaxation dynamics in SHARC based on structural changes. 
 Coded in style with SHARC's original scripts using traj_manip class and geo.py 
