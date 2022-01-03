@@ -8,9 +8,10 @@ import matplotlib.pyplot as plt
 #parser: folder nstates Geo.inp
 
 folder = sys.argv[1]
-nstates = int(sys.argv[2])
+nstates = (sys.argv[2])
 geo = sys.argv[3]
 labels = sys.argv[4].split(',')
+timestep = float(sys.argv[5])
 trajs = os.listdir(folder)
 curr = os.getcwd()
 
@@ -18,6 +19,7 @@ print('Folder of trajectories: ', folder)
 print('Current trajectory: ', curr)
 print('Number of states: ', nstates)
 print('Geometry analysis file: ', geo)
+print('Time step: ', timestep)
 
 print('')
 
@@ -32,8 +34,8 @@ for traj in trajs:
     print(traj)
     os.chdir(folder + traj)
 
-    os.system("$SHARC/data_extractor.x output.dat")
-    os.system("$SHARC/make_gnuscript.py "+ str(nstates)  +" > plot.gp")
+    os.system("$SHARC/data_extractor.x -s output.dat")
+    os.system("$SHARC/make_gnuscript.py " +(nstates)  +" > plot.gp")
     
     with open('plot2.gp','w') as dataout:
         dataout.write('set terminal pdf\n')
@@ -62,7 +64,7 @@ for traj in trajs:
     #    dataout.write("r 3 4\n")
     #    dataout.write("r 4 5")
     
-    os.system("$SHARC/geo.py -g output.xyz -t 0.5 < Geo.inp > Geo.out")
+    os.system("$SHARC/geo.py -g output.xyz -t "+ str(timestep)  +" < Geo.inp > Geo.out")
 
     #with open('Geo.gp','w') as dataout:
     #    dataout.write("set terminal pdf\nset output 'Geo.pdf'\nset xlabel 't / fs'\nset ylabel 'r / A'\n")
